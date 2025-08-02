@@ -7,14 +7,26 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 public class Lexer implements AutoCloseable {
     private final Reader reader;
     private int currentChar;
+    private static final Map<String, TokenType> keywords = new HashMap<>();
 
-    public Lexer(Reader reader) {
+    static {
+        keywords.put("let", TokenType.LET);
+        keywords.put("if", TokenType.IF);
+        keywords.put("else", TokenType.ELSE);
+        keywords.put("return", TokenType.RETURN);
+        keywords.put("fn", TokenType.FUNCTION);
+    }
+
+    public Lexer(Reader reader) throws IOException {
         this.reader = reader;
+        this.currentChar = reader.read();
     }
 
     public boolean hasNext() {
@@ -22,12 +34,12 @@ public class Lexer implements AutoCloseable {
     }
 
     private void skipWhitespace() throws IOException {
-        while (hasNext() && Character.isWhitespace(currentChar)) {
-            nextChar();
+        while (Character.isWhitespace(currentChar)) {
+            readChar();
         }
     }
 
-    public char nextChar() throws IOException {
+    public char readChar() throws IOException {
         char result = (char) currentChar;
         currentChar = reader.read();
         return result;
@@ -37,7 +49,6 @@ public class Lexer implements AutoCloseable {
         skipWhitespace();
 
         Token token;
-        nextChar();
 
         switch (currentChar) {
             case '{':
@@ -56,14 +67,42 @@ public class Lexer implements AutoCloseable {
                 token = new Token(TokenType.SEMICOLON, ";");
                 break;
             case -1:
-                token = new Token(TokenType.EOF, "");
-                break;
+                return new Token(TokenType.EOF, "");
             default:
+                if (isLetter()) {
+                    String identifier = readIdentifier();
+                    return lokkupIdentifier(identifier); 
+                }
+
                 token = new Token(TokenType.ILLEGAL, String.valueOf((char) currentChar));
                 break;
         }
 
+        readChar();
         return token;
+    }
+
+    private String readIdentifier() throws IOException {
+        StringBuilder sb = new StringBuilder();
+
+        while (isLetter()) {
+            System.out.println((char) currentChar);
+            sb.append((char) currentChar);
+            readChar();
+        }
+
+        return sb.toString();
+    }
+
+    private Token lokkupIdentifier(String identifier) {
+        TokenType type = keywords.getOrDefault(identifier, TokenType.IDENT);
+        return new Token(type, identifier);
+    }
+
+    private boolean isLetter() {
+        return 'a' <= currentChar && currentChar <= 'z'
+                || 'A' <= currentChar && currentChar <= 'Z'
+                || currentChar == '_';
     }
 
     @Override

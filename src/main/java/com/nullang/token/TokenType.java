@@ -19,5 +19,8 @@ public enum TokenType {
     RBRACE,
 
     FUNCTION,
-    LET
+    LET,
+    IF,
+    ELSE,
+    RETURN
 }

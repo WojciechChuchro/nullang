@@ -11,7 +11,7 @@ import java.io.Reader;
 import java.io.StringReader;
 
 public class LexerTest {
-    Reader def = new StringReader("{}();&");
+    Reader def = new StringReader("{}();&let return five");
 
     @Test
     void testLexerReadsInput() throws Exception {
@@ -22,12 +22,15 @@ public class LexerTest {
                 new Token(TokenType.LPAREN, "("),
                 new Token(TokenType.RPAREN, ")"),
                 new Token(TokenType.SEMICOLON, ";"),
-                new Token(TokenType.ILLEGAL, "&")
+                new Token(TokenType.ILLEGAL, "&"),
+                new Token(TokenType.LET, "let"),
+                new Token(TokenType.RETURN, "return"),
+                new Token(TokenType.IDENT, "five")
             };
             for (Token expected : expectedTokens) {
                 Token actual = lexer.nextToken();
-                assertEquals(expected.type, actual.type);
                 assertEquals(expected.literal, actual.literal);
+                assertEquals(expected.type, actual.type);
             }
         }
     }
