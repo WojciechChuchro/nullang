@@ -7,8 +7,14 @@ public enum TokenType {
     IDENT,
     INT,
 
-    ASSIGN,
     PLUS,
+    MINUS,
+    ASTERISK,
+    SLASH,
+    ASSIGN,
+    BANG,
+    LT,
+    GT,
 
     COMMA,
     SEMICOLON,

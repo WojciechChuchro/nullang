@@ -11,7 +11,8 @@ import java.io.StringReader;
 import org.junit.jupiter.api.Test;
 
 public class LexerTest {
-    Reader def = new StringReader("{}();&let return five 34");
+    Reader def = new StringReader("{}();&let return five 34 ! = < >");
+    Reader math = new StringReader("* / + -");
 
     @Test
     void testLexerReadsInput() throws Exception {
@@ -26,7 +27,30 @@ public class LexerTest {
                 new Token(TokenType.LET, "let"),
                 new Token(TokenType.RETURN, "return"),
                 new Token(TokenType.IDENT, "five"),
-                new Token(TokenType.INT, "34")
+                new Token(TokenType.INT, "34"),
+                new Token(TokenType.BANG, "!"),
+                new Token(TokenType.ASSIGN, "="),
+                new Token(TokenType.LT, "<"),
+                new Token(TokenType.GT, ">"),
+                new Token(TokenType.EOF, "")
+            };
+            for (Token expected : expectedTokens) {
+                Token actual = lexer.nextToken();
+                assertEquals(expected.literal, actual.literal);
+                assertEquals(expected.type, actual.type);
+            }
+        }
+    }
+
+    @Test
+    void testMathOperators() throws Exception {
+
+        try (Lexer lexer = new Lexer(math); ) {
+            Token[] expectedTokens = {
+                new Token(TokenType.ASTERISK, "*"),
+                new Token(TokenType.SLASH, "/"),
+                new Token(TokenType.PLUS, "+"),
+                new Token(TokenType.MINUS, "-"),
             };
             for (Token expected : expectedTokens) {
                 Token actual = lexer.nextToken();

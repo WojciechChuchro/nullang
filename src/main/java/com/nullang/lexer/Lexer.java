@@ -66,6 +66,30 @@ public class Lexer implements AutoCloseable {
             case ';':
                 token = new Token(TokenType.SEMICOLON, ";");
                 break;
+            case '<':
+                token = new Token(TokenType.LT, "<");
+                break;
+            case '>':
+                token = new Token(TokenType.GT, ">");
+                break;
+            case '=':
+                token = new Token(TokenType.ASSIGN, "=");
+                break;
+            case '!':
+                token = new Token(TokenType.BANG, "!");
+                break;
+            case '-':
+                token = new Token(TokenType.MINUS, "-");
+                break;
+            case '+':
+                token = new Token(TokenType.PLUS, "+");
+                break;
+            case '*':
+                token = new Token(TokenType.ASTERISK, "*");
+                break;
+            case '/':
+                token = new Token(TokenType.SLASH, "/");
+                break;
             case -1:
                 return new Token(TokenType.EOF, "");
             default:
