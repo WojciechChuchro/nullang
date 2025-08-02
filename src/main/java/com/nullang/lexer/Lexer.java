@@ -71,7 +71,10 @@ public class Lexer implements AutoCloseable {
             default:
                 if (isLetter()) {
                     String identifier = readIdentifier();
-                    return lokkupIdentifier(identifier); 
+                    return lokkupIdentifier(identifier);
+                } else if (isDigit()) {
+                    String number = readNumber();
+                    return new Token(TokenType.INT, number);
                 }
 
                 token = new Token(TokenType.ILLEGAL, String.valueOf((char) currentChar));
@@ -86,7 +89,17 @@ public class Lexer implements AutoCloseable {
         StringBuilder sb = new StringBuilder();
 
         while (isLetter()) {
-            System.out.println((char) currentChar);
+            sb.append((char) currentChar);
+            readChar();
+        }
+
+        return sb.toString();
+    }
+
+    private String readNumber() throws IOException {
+        StringBuilder sb = new StringBuilder();
+
+        while (isDigit()) {
             sb.append((char) currentChar);
             readChar();
         }
@@ -103,6 +116,10 @@ public class Lexer implements AutoCloseable {
         return 'a' <= currentChar && currentChar <= 'z'
                 || 'A' <= currentChar && currentChar <= 'Z'
                 || currentChar == '_';
+    }
+
+    private boolean isDigit() {
+        return '0' <= currentChar && currentChar <= '9';
     }
 
     @Override
