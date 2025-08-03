@@ -11,8 +11,11 @@ import java.io.StringReader;
 
 import org.junit.jupiter.api.Test;
 
+import com.nullang.ast.Expression;
+import com.nullang.ast.Identifier;
 import com.nullang.ast.Program;
 import com.nullang.ast.Statement;
+import com.nullang.ast.statement.ExpressionStatement;
 import com.nullang.ast.statement.LetStatement;
 import com.nullang.ast.statement.ReturnStatement;
 import com.nullang.lexer.Lexer;
@@ -75,7 +78,7 @@ public class ParserTest {
             assertNotNull(program, "parseProgram() returned null");
 
             var statements = program.statements;
-            assertEquals(2, statements.size(), "Expected 2 let statements");
+            assertEquals(2, statements.size(), "Expected 2 return statements");
 
             String[] expectedIdentifiers = {"5", "true"};
 
@@ -132,6 +135,39 @@ public class ParserTest {
                     assertThrowsExactly(ParserException.class, () -> parser.parseProgram());
 
             assertEquals("Peek should be variable name!Token [type=ASSIGN, literal==]", ex.getMessage());
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    @Test
+    public void testExpressions() {
+        Reader input =
+                new StringReader(
+                        """
+                            foobar
+                        """);
+
+        try (Lexer lexer = new Lexer(input);
+                Parser parser = new Parser(lexer); ) {
+
+            Program program = parser.parseProgram();
+            assertNotNull(program, "parseProgram() returned null");
+
+            var statements = program.statements;
+            assertEquals(1, statements.size(), "Expected 1 statements");
+
+            String[] expectedIdentifiers = {"foobar"};
+
+            for (int i = 0; i < expectedIdentifiers.length; i++) {
+                Statement stmt = statements.get(i);
+                assertTrue(stmt instanceof ExpressionStatement, "Statement is not a ExpressionStatement");
+
+                ExpressionStatement stm = (ExpressionStatement) stmt;
+                //Expression ex = stm.getExpression();
+               // assertTrue(ex instanceof Identifier, "Expressions is not a Identifier");
+                assertEquals("foobar", stm.tokenLiteral());
+            }
         } catch (IOException ex) {
             ex.printStackTrace();
         }

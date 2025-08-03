@@ -2,21 +2,21 @@ package com.nullang.lexer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.nullang.token.Token;
-import com.nullang.token.TokenType;
-
 import java.io.Reader;
 import java.io.StringReader;
 
 import org.junit.jupiter.api.Test;
 
+import com.nullang.token.Token;
+import com.nullang.token.TokenType;
+
 public class LexerTest {
-    Reader def = new StringReader("{}();&let return five 34 ! = < >");
-    Reader math = new StringReader("* / + -");
 
     @Test
     void testLexerReadsInput() throws Exception {
-        try (Lexer lexer = new Lexer(def); ) {
+        Reader input = new StringReader("{}();&let return five 34 ! = < >");
+
+        try (Lexer lexer = new Lexer(input); ) {
             Token[] expectedTokens = {
                 new Token(TokenType.LBRACE, "{"),
                 new Token(TokenType.RBRACE, "}"),
@@ -44,8 +44,9 @@ public class LexerTest {
 
     @Test
     void testMathOperators() throws Exception {
+        Reader input = new StringReader("* / + -");
 
-        try (Lexer lexer = new Lexer(math); ) {
+        try (Lexer lexer = new Lexer(input); ) {
             Token[] expectedTokens = {
                 new Token(TokenType.ASTERISK, "*"),
                 new Token(TokenType.SLASH, "/"),
@@ -82,7 +83,6 @@ public class LexerTest {
         }
     }
 
-
     @Test
     void testDoubleEqual() throws Exception {
         Reader keyword = new StringReader("==a!=");
@@ -100,7 +100,6 @@ public class LexerTest {
             }
         }
     }
-
 
     @Test
     void testEqGtLT() throws Exception {

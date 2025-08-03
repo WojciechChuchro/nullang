@@ -9,6 +9,14 @@ public class ExpressionStatement implements Statement{
     private final Token token;
     private final Expression expression;
 
+    public Token getToken() {
+        return token;
+    }
+
+    public Expression getExpression() {
+        return expression;
+    }
+
     public ExpressionStatement(Token token, Expression expression) {
         this.token = token;
         this.expression = expression;
