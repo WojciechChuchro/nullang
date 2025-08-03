@@ -1,7 +1,7 @@
 package com.nullang.ast.statement;
 
-import java.beans.Expression;
 
+import com.nullang.ast.Expression;
 import com.nullang.ast.Node;
 import com.nullang.ast.Statement;
 import com.nullang.token.Token;
@@ -27,5 +27,8 @@ public class ReturnStatement implements Statement{
         return token.literal;
     }
 
-    
+    @Override
+    public String toString() {
+        return "ReturnStatement [token=" + token + ", returnValue=" + returnValue + "]";
+    }
 }

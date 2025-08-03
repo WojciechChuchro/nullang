@@ -15,6 +15,11 @@ public class ExpressionStatement implements Statement{
     }
 
     @Override
+    public String toString() {
+        return "ExpressionStatement [token=" + token + ", expression=" + expression + "]";
+    }
+
+    @Override
     public String tokenLiteral() {
         return token.literal;
     }

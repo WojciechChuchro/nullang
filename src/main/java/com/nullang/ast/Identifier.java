@@ -22,12 +22,12 @@ public class Identifier implements Expression {
     }
 
     @Override
-    public String toString() {
-        return value;
+    public Node expressionNode() {
+        return null;
     }
 
     @Override
-    public Node expressionNode() {
-        return null;
+    public String toString() {
+        return "Identifier [token=" + token + ", value=" + value + "]";
     }
 }
