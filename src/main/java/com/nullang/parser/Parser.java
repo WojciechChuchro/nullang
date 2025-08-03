@@ -1,19 +1,19 @@
 package com.nullang.parser;
 
-import com.nullang.ast.LetStatement;
-import com.nullang.ast.Program;
-import com.nullang.ast.ReturnStatement;
-import com.nullang.ast.Statement;
-import com.nullang.lexer.Lexer;
-import com.nullang.parser.errors.ParserException;
-import com.nullang.token.Token;
-import com.nullang.token.TokenType;
-
 import java.io.IOException;
 import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.nullang.ast.Program;
+import com.nullang.ast.Statement;
+import com.nullang.ast.statement.LetStatement;
+import com.nullang.ast.statement.ReturnStatement;
+import com.nullang.lexer.Lexer;
+import com.nullang.parser.errors.ParserException;
+import com.nullang.token.Token;
+import com.nullang.token.TokenType;
 
 public class Parser implements AutoCloseable {
     private final Logger log = LoggerFactory.getLogger(Parser.class);

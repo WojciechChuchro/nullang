@@ -5,18 +5,18 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.nullang.ast.LetStatement;
-import com.nullang.ast.Program;
-import com.nullang.ast.ReturnStatement;
-import com.nullang.ast.Statement;
-import com.nullang.lexer.Lexer;
-import com.nullang.parser.errors.ParserException;
-
-import org.junit.jupiter.api.Test;
-
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
+
+import org.junit.jupiter.api.Test;
+
+import com.nullang.ast.Program;
+import com.nullang.ast.Statement;
+import com.nullang.ast.statement.LetStatement;
+import com.nullang.ast.statement.ReturnStatement;
+import com.nullang.lexer.Lexer;
+import com.nullang.parser.errors.ParserException;
 
 public class ParserTest {
 

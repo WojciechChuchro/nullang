@@ -1,8 +1,9 @@
-
-package com.nullang.ast;
+package com.nullang.ast.statement;
 
 import java.beans.Expression;
 
+import com.nullang.ast.Node;
+import com.nullang.ast.Statement;
 import com.nullang.token.Token;
 
 public class ReturnStatement implements Statement{
