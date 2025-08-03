@@ -2,6 +2,7 @@ package com.nullang.parser;
 
 import com.nullang.ast.LetStatement;
 import com.nullang.ast.Program;
+import com.nullang.ast.ReturnStatement;
 import com.nullang.ast.Statement;
 import com.nullang.lexer.Lexer;
 import com.nullang.parser.errors.ParserException;
@@ -57,9 +58,22 @@ public class Parser implements AutoCloseable {
         switch (curToken.type) {
             case TokenType.LET:
                 return parseLetStatement();
+            case TokenType.RETURN:
+                return parseReturnStatement();
             default:
                 return Optional.empty();
         }
+    }
+
+    private Optional<Statement> parseReturnStatement() {
+        Statement stm = new ReturnStatement(curToken); 
+
+        nextToken();
+        while(curToken.type != TokenType.SEMICOLON) {
+            nextToken();
+        }
+
+        return Optional.of(stm);
     }
 
     private Optional<Statement> parseLetStatement() {
