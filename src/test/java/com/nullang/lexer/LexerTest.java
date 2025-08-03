@@ -59,4 +59,45 @@ public class LexerTest {
             }
         }
     }
+
+    @Test
+    void testLexerKeywordsInput() throws Exception {
+        Reader keyword = new StringReader("fn let if else return true false");
+        try (Lexer lexer = new Lexer(keyword); ) {
+            Token[] expectedTokens = {
+                new Token(TokenType.FUNCTION, "fn"),
+                new Token(TokenType.LET, "let"),
+                new Token(TokenType.IF, "if"),
+                new Token(TokenType.ELSE, "else"),
+                new Token(TokenType.RETURN, "return"),
+                new Token(TokenType.TRUE, "true"),
+                new Token(TokenType.FALSE, "false"),
+                new Token(TokenType.EOF, "")
+            };
+            for (Token expected : expectedTokens) {
+                Token actual = lexer.nextToken();
+                assertEquals(expected.literal, actual.literal);
+                assertEquals(expected.type, actual.type);
+            }
+        }
+    }
+
+
+    @Test
+    void testDoubleEqual() throws Exception {
+        Reader keyword = new StringReader("==a!=");
+        try (Lexer lexer = new Lexer(keyword); ) {
+            Token[] expectedTokens = {
+                new Token(TokenType.EQ, "=="),
+                new Token(TokenType.IDENT, "a"),
+                new Token(TokenType.NOT_EQ, "!="),
+                new Token(TokenType.EOF, "")
+            };
+            for (Token expected : expectedTokens) {
+                Token actual = lexer.nextToken();
+                assertEquals(expected.literal, actual.literal);
+                assertEquals(expected.type, actual.type);
+            }
+        }
+    }
 }

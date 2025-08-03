@@ -14,14 +14,17 @@ import java.util.Map;
 public class Lexer implements AutoCloseable {
     private final Reader reader;
     private int currentChar;
+    private int peekedChar = -2;
     private static final Map<String, TokenType> keywords = new HashMap<>();
 
     static {
+        keywords.put("fn", TokenType.FUNCTION);
         keywords.put("let", TokenType.LET);
         keywords.put("if", TokenType.IF);
         keywords.put("else", TokenType.ELSE);
         keywords.put("return", TokenType.RETURN);
-        keywords.put("fn", TokenType.FUNCTION);
+        keywords.put("true", TokenType.TRUE);
+        keywords.put("false", TokenType.FALSE);
     }
 
     public Lexer(Reader reader) throws IOException {
@@ -41,7 +44,12 @@ public class Lexer implements AutoCloseable {
 
     public char readChar() throws IOException {
         char result = (char) currentChar;
-        currentChar = reader.read();
+        if (peekedChar == -2) {
+            currentChar = reader.read();
+        } else {
+            currentChar = peekedChar;
+            peekedChar = -2;
+        }
         return result;
     }
 
@@ -73,9 +81,19 @@ public class Lexer implements AutoCloseable {
                 token = new Token(TokenType.GT, ">");
                 break;
             case '=':
+                if (peekChar() == '=') {
+                    readChar();
+                    token = new Token(TokenType.EQ, "==");
+                    break;
+                }
                 token = new Token(TokenType.ASSIGN, "=");
                 break;
             case '!':
+                if (peekChar() == '=') {
+                    readChar();
+                    token = new Token(TokenType.NOT_EQ, "!=");
+                    break;
+                }
                 token = new Token(TokenType.BANG, "!");
                 break;
             case '-':
@@ -129,6 +147,13 @@ public class Lexer implements AutoCloseable {
         }
 
         return sb.toString();
+    }
+
+    private int peekChar() throws IOException {
+        if (peekedChar == -2) {
+            peekedChar = reader.read();
+        }
+        return peekedChar;
     }
 
     private Token lokkupIdentifier(String identifier) {

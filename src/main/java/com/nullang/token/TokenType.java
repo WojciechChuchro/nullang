@@ -28,5 +28,10 @@ public enum TokenType {
     LET,
     IF,
     ELSE,
-    RETURN
+    RETURN,
+    TRUE,
+    FALSE,
+
+    EQ,
+    NOT_EQ
 }
