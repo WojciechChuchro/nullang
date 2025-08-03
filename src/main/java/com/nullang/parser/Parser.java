@@ -4,6 +4,7 @@ import com.nullang.ast.LetStatement;
 import com.nullang.ast.Program;
 import com.nullang.ast.Statement;
 import com.nullang.lexer.Lexer;
+import com.nullang.parser.errors.ParserException;
 import com.nullang.token.Token;
 import com.nullang.token.TokenType;
 
@@ -40,15 +41,16 @@ public class Parser implements AutoCloseable {
 
     public Program parseProgram() throws IOException {
         log.info("Started parsing");
-        Program program = new Program();
+        Program p = new Program();
+
         while (peekToken.type != TokenType.EOF) {
             Optional<Statement> statement = parseStatement();
-            statement.ifPresent(s -> program.statements.add(s));
+            statement.ifPresent(s -> p.statements.add(s));
             nextToken();
         }
 
         log.info("end parsing");
-        return program;
+        return p;
     }
 
     private Optional<Statement> parseStatement() {
@@ -63,15 +65,14 @@ public class Parser implements AutoCloseable {
     private Optional<Statement> parseLetStatement() {
         Statement st = new LetStatement(curToken);
         if (!expectPeek(TokenType.IDENT)) {
-            log.info("Current should be peek" + curToken);
-            return Optional.empty();
+            throw new ParserException("Peek should be variable name!" + peekToken);
         }
 
         nextToken();
-        if (peekToken.type != TokenType.ASSIGN) {
-            log.info("Expected '=' after identifier" + curToken);
-            return Optional.empty();
+        if (!expectPeek(TokenType.ASSIGN)) {
+            throw new ParserException("Expected '=' after identifier" + peekToken);
         }
+
         // TODO: right now only skip till semicol
         nextToken();
         while (!currentTokenIs(TokenType.SEMICOLON)) {

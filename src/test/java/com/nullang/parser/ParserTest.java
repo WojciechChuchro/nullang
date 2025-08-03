@@ -2,13 +2,14 @@ package com.nullang.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.nullang.ast.Identifier;
 import com.nullang.ast.LetStatement;
 import com.nullang.ast.Program;
 import com.nullang.ast.Statement;
 import com.nullang.lexer.Lexer;
+import com.nullang.parser.errors.ParserException;
 
 import org.junit.jupiter.api.Test;
 
@@ -46,12 +47,52 @@ public class ParserTest {
                 LetStatement letStmt = (LetStatement) stmt;
                 assertEquals("let", letStmt.tokenLiteral());
 
-                //TODO:
+                // TODO:
                 // Identifier name = letStmt.name;
                 // assertNotNull(name, "LetStatement.name is null");
                 // assertEquals(expectedIdentifiers[i], name.getValue());
                 // assertEquals(expectedIdentifiers[i], name.tokenLiteral());
             }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    @Test
+    public void testForAssign() {
+        Reader input =
+                new StringReader(
+                        """
+                        let x;
+                        """);
+
+        try (Lexer lexer = new Lexer(input);
+                Parser parser = new Parser(lexer); ) {
+
+            ParserException ex =
+                    assertThrowsExactly(ParserException.class, () -> parser.parseProgram());
+
+            assertEquals("Expected '=' after identifierToken [type=SEMICOLON, literal=;]", ex.getMessage());
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    @Test
+    public void testForIdent() {
+        Reader input =
+                new StringReader(
+                        """
+                        let =;
+                        """);
+
+        try (Lexer lexer = new Lexer(input);
+                Parser parser = new Parser(lexer); ) {
+
+            ParserException ex =
+                    assertThrowsExactly(ParserException.class, () -> parser.parseProgram());
+
+            assertEquals("Peek should be variable name!Token [type=ASSIGN, literal==]", ex.getMessage());
         } catch (IOException ex) {
             ex.printStackTrace();
         }
