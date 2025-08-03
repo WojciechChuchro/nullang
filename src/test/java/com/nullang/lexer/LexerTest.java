@@ -100,4 +100,23 @@ public class LexerTest {
             }
         }
     }
+
+
+    @Test
+    void testEqGtLT() throws Exception {
+        Reader input = new StringReader("> < =");
+        try (Lexer lexer = new Lexer(input); ) {
+            Token[] expectedTokens = {
+                new Token(TokenType.GT, ">"),
+                new Token(TokenType.LT, "<"),
+                new Token(TokenType.ASSIGN, "="),
+                new Token(TokenType.EOF, "")
+            };
+            for (Token expected : expectedTokens) {
+                Token actual = lexer.nextToken();
+                assertEquals(expected.literal, actual.literal);
+                assertEquals(expected.type, actual.type);
+            }
+        }
+    }
 }
