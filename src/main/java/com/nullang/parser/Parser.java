@@ -5,6 +5,7 @@ import com.nullang.ast.Identifier;
 import com.nullang.ast.IntegerIdentifier;
 import com.nullang.ast.Program;
 import com.nullang.ast.Statement;
+import com.nullang.ast.expression.PrefixExpression;
 import com.nullang.ast.statement.ExpressionStatement;
 import com.nullang.ast.statement.LetStatement;
 import com.nullang.ast.statement.ReturnStatement;
@@ -47,10 +48,23 @@ public class Parser implements AutoCloseable {
     public Parser(Lexer lexer) throws IOException {
         this.lexer = lexer;
         this.registerPrefix(TokenType.IDENT, () -> new Identifier(curToken, curToken.literal));
-        this.registerPrefix(TokenType.INT, () -> new IntegerIdentifier(curToken, Integer.parseInt(curToken.literal)));
+        this.registerPrefix(
+                TokenType.INT,
+                () -> new IntegerIdentifier(curToken, Integer.parseInt(curToken.literal)));
+        this.registerPrefix(TokenType.BANG, () -> parsePrefixExpression());
+        this.registerPrefix(TokenType.MINUS, () -> parsePrefixExpression());
 
         nextToken();
         nextToken();
+    }
+
+    private Expression parsePrefixExpression() {
+        PrefixExpression exp = new PrefixExpression(curToken, curToken.literal);
+
+        nextToken();
+        parseExpression(Precedences.PREFIX).ifPresent(exp::setRight);
+
+        return exp;
     }
 
     private void nextToken() {
@@ -91,14 +105,16 @@ public class Parser implements AutoCloseable {
     }
 
     private Optional<Statement> parseExpressionStatement() {
+        Token stmtToken = curToken;
         Optional<Expression> optionalExpr = parseExpression(Precedences.LOWEST);
 
         if (optionalExpr.isEmpty()) {
+            log.error("No prefix parse function found for: " + curToken.type);
             return Optional.empty();
         }
 
         Expression expr = optionalExpr.get();
-        Statement stmt = new ExpressionStatement(curToken, expr);
+        Statement stmt = new ExpressionStatement(stmtToken, expr);
 
         if (peekToken.type == TokenType.SEMICOLON) {
             nextToken();
@@ -167,14 +183,6 @@ public class Parser implements AutoCloseable {
 
     public Token getPeekToken() {
         return peekToken;
-    }
-
-    private int peekPrecedence() {
-        return PRECEDENCES.getOrDefault(peekToken.type, Precedences.LOWEST);
-    }
-
-    private int curPrecedence() {
-        return PRECEDENCES.getOrDefault(curToken.type, Precedences.LOWEST);
     }
 
     @Override

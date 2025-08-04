@@ -9,6 +9,7 @@ import com.nullang.ast.Identifier;
 import com.nullang.ast.IntegerIdentifier;
 import com.nullang.ast.Program;
 import com.nullang.ast.Statement;
+import com.nullang.ast.expression.PrefixExpression;
 import com.nullang.ast.statement.ExpressionStatement;
 import com.nullang.ast.statement.LetStatement;
 import com.nullang.ast.statement.ReturnStatement;
@@ -164,26 +165,66 @@ public class ParserTest {
             var statements = program.statements;
             assertEquals(2, statements.size(), "Expected 2 statements");
 
-
             Statement stmt = statements.get(0);
             assertTrue(
                     stmt instanceof ExpressionStatement, "Statement is not a ExpressionStatement");
 
             ExpressionStatement stm = (ExpressionStatement) stmt;
             assertEquals("foobar", stm.tokenLiteral());
-            assertEquals("foobar", ((Identifier)stm.getExpression()).getValue());
+            assertEquals("foobar", ((Identifier) stm.getExpression()).getValue());
 
             Statement stmt2 = statements.get(1);
             assertTrue(
                     stmt2 instanceof ExpressionStatement, "Statement is not a ExpressionStatement");
-            System.out.println(program);
 
             ExpressionStatement stm2 = (ExpressionStatement) stmt2;
             assertTrue(
-                    stm2.getExpression() instanceof IntegerIdentifier, "Expressions statement should be integer identifier!");
+                    stm2.getExpression() instanceof IntegerIdentifier,
+                    "Expressions statement should be integer identifier!");
 
             assertEquals("5", stm2.tokenLiteral());
-            assertEquals(5, ((IntegerIdentifier)stm2.getExpression()).getValue());
+            assertEquals(5, ((IntegerIdentifier) stm2.getExpression()).getValue());
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    @Test
+    public void testPrefixExpression() {
+        Reader input =
+                new StringReader(
+                        """
+                        !5;
+                -5;
+                        """);
+
+        try (Lexer lexer = new Lexer(input);
+                Parser parser = new Parser(lexer); ) {
+
+            Program program = parser.parseProgram();
+            assertNotNull(program, "parseProgram() returned null");
+
+            var statements = program.statements;
+            assertEquals(2, statements.size(), "Expected 2 statements");
+
+            Statement stmt = statements.get(0);
+            assertTrue(
+                    stmt instanceof ExpressionStatement, "Statement is not a ExpressionStatement");
+
+            ExpressionStatement stm = (ExpressionStatement) stmt;
+            assertTrue(
+                    stm.getExpression() instanceof PrefixExpression,
+                    "Statement is not a ExpressionStatement");
+            PrefixExpression st = (PrefixExpression) stm.getExpression();
+            assertEquals("!", st.tokenLiteral());
+            assertEquals("!", st.getOperator());
+            assertNotNull(st.getRight(), "Right operand should not be null");
+            assertTrue(
+                    st.getRight() instanceof IntegerIdentifier,
+                    "Right operand should be IntegerIdentifier");
+            IntegerIdentifier right = (IntegerIdentifier) st.getRight();
+            assertEquals(5, right.getValue(), "Right operand value should be 5");
+            assertEquals("5", right.tokenLiteral(), "Right operand token literal should be '5'");
         } catch (IOException ex) {
             ex.printStackTrace();
         }
