@@ -2,120 +2,131 @@ package com.nullang.lexer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.io.Reader;
-import java.io.StringReader;
-
-import org.junit.jupiter.api.Test;
-
 import com.nullang.token.Token;
 import com.nullang.token.TokenType;
 
+import org.junit.jupiter.api.Test;
+
+import java.io.Reader;
+import java.io.StringReader;
+
 public class LexerTest {
 
-    @Test
-    void testLexerReadsInput() throws Exception {
-        Reader input = new StringReader("{}();&let return five 34 ! = < >");
+    private void assertTokens(String input, Token... expectedTokens) throws Exception {
+        Reader reader = new StringReader(input);
+        try (Lexer lexer = new Lexer(reader)) {
+            for (Token expected : expectedTokens) {
+                Token actual = lexer.nextToken();
+                assertEquals(expected.literal, actual.literal);
+                assertEquals(expected.type, actual.type);
+            }
+        }
+    }
 
-        try (Lexer lexer = new Lexer(input); ) {
-            Token[] expectedTokens = {
+    @Test
+    void testDelimiters() throws Exception {
+        assertTokens(
+                "{}()",
                 new Token(TokenType.LBRACE, "{"),
                 new Token(TokenType.RBRACE, "}"),
                 new Token(TokenType.LPAREN, "("),
-                new Token(TokenType.RPAREN, ")"),
-                new Token(TokenType.SEMICOLON, ";"),
-                new Token(TokenType.ILLEGAL, "&"),
-                new Token(TokenType.LET, "let"),
-                new Token(TokenType.RETURN, "return"),
-                new Token(TokenType.IDENT, "five"),
-                new Token(TokenType.INT, "34"),
-                new Token(TokenType.BANG, "!"),
-                new Token(TokenType.ASSIGN, "="),
-                new Token(TokenType.LT, "<"),
-                new Token(TokenType.GT, ">"),
-                new Token(TokenType.EOF, "")
-            };
-            for (Token expected : expectedTokens) {
-                Token actual = lexer.nextToken();
-                assertEquals(expected.literal, actual.literal);
-                assertEquals(expected.type, actual.type);
-            }
-        }
+                new Token(TokenType.RPAREN, ")"));
     }
 
     @Test
-    void testMathOperators() throws Exception {
-        Reader input = new StringReader("* / + -");
+    void testSemicolon() throws Exception {
+        assertTokens(";", new Token(TokenType.SEMICOLON, ";"));
+    }
 
-        try (Lexer lexer = new Lexer(input); ) {
-            Token[] expectedTokens = {
-                new Token(TokenType.ASTERISK, "*"),
-                new Token(TokenType.SLASH, "/"),
+    @Test
+    void testIdentifiers() throws Exception {
+        assertTokens(
+                "five myVar",
+                new Token(TokenType.IDENT, "five"),
+                new Token(TokenType.IDENT, "myVar"));
+    }
+
+    @Test
+    void testIntegers() throws Exception {
+        assertTokens("34 123", new Token(TokenType.INT, "34"), new Token(TokenType.INT, "123"));
+    }
+
+    @Test
+    void testIllegalCharacters() throws Exception {
+        assertTokens("&", new Token(TokenType.ILLEGAL, "&"));
+    }
+
+    @Test
+    void testBasicArithmeticOperators() throws Exception {
+        assertTokens(
+                "+ - * /",
                 new Token(TokenType.PLUS, "+"),
                 new Token(TokenType.MINUS, "-"),
-            };
-            for (Token expected : expectedTokens) {
-                Token actual = lexer.nextToken();
-                assertEquals(expected.literal, actual.literal);
-                assertEquals(expected.type, actual.type);
-            }
-        }
+                new Token(TokenType.ASTERISK, "*"),
+                new Token(TokenType.SLASH, "/"));
     }
 
     @Test
-    void testLexerKeywordsInput() throws Exception {
-        Reader keyword = new StringReader("fn let if else return true false");
-        try (Lexer lexer = new Lexer(keyword); ) {
-            Token[] expectedTokens = {
-                new Token(TokenType.FUNCTION, "fn"),
-                new Token(TokenType.LET, "let"),
-                new Token(TokenType.IF, "if"),
-                new Token(TokenType.ELSE, "else"),
-                new Token(TokenType.RETURN, "return"),
-                new Token(TokenType.TRUE, "true"),
-                new Token(TokenType.FALSE, "false"),
-                new Token(TokenType.EOF, "")
-            };
-            for (Token expected : expectedTokens) {
-                Token actual = lexer.nextToken();
-                assertEquals(expected.literal, actual.literal);
-                assertEquals(expected.type, actual.type);
-            }
-        }
-    }
-
-    @Test
-    void testDoubleEqual() throws Exception {
-        Reader keyword = new StringReader("==a!=");
-        try (Lexer lexer = new Lexer(keyword); ) {
-            Token[] expectedTokens = {
-                new Token(TokenType.EQ, "=="),
-                new Token(TokenType.IDENT, "a"),
-                new Token(TokenType.NOT_EQ, "!="),
-                new Token(TokenType.EOF, "")
-            };
-            for (Token expected : expectedTokens) {
-                Token actual = lexer.nextToken();
-                assertEquals(expected.literal, actual.literal);
-                assertEquals(expected.type, actual.type);
-            }
-        }
-    }
-
-    @Test
-    void testEqGtLT() throws Exception {
-        Reader input = new StringReader("> < =");
-        try (Lexer lexer = new Lexer(input); ) {
-            Token[] expectedTokens = {
-                new Token(TokenType.GT, ">"),
+    void testComparisonOperators() throws Exception {
+        assertTokens(
+                "< > !",
                 new Token(TokenType.LT, "<"),
+                new Token(TokenType.GT, ">"),
+                new Token(TokenType.BANG, "!"));
+    }
+
+    @Test
+    void testAssignmentOperator() throws Exception {
+        assertTokens("=", new Token(TokenType.ASSIGN, "="));
+    }
+
+    @Test
+    void testEqualityOperators() throws Exception {
+        assertTokens("== !=", new Token(TokenType.EQ, "=="), new Token(TokenType.NOT_EQ, "!="));
+    }
+
+    @Test
+    void testKeywords() throws Exception {
+        assertTokens(
+                "fn let", new Token(TokenType.FUNCTION, "fn"), new Token(TokenType.LET, "let"));
+    }
+
+    @Test
+    void testConditionalKeywords() throws Exception {
+        assertTokens("if else", new Token(TokenType.IF, "if"), new Token(TokenType.ELSE, "else"));
+    }
+
+    @Test
+    void testControlFlowKeywords() throws Exception {
+        assertTokens("return", new Token(TokenType.RETURN, "return"));
+    }
+
+    @Test
+    void testBooleanLiterals() throws Exception {
+        assertTokens(
+                "true false",
+                new Token(TokenType.TRUE, "true"),
+                new Token(TokenType.FALSE, "false"));
+    }
+
+    @Test
+    void testEndOfFile() throws Exception {
+        assertTokens("", new Token(TokenType.EOF, ""));
+    }
+
+    @Test
+    void testSimpleExpression() throws Exception {
+        assertTokens(
+                "let x = 5;",
+                new Token(TokenType.LET, "let"),
+                new Token(TokenType.IDENT, "x"),
                 new Token(TokenType.ASSIGN, "="),
-                new Token(TokenType.EOF, "")
-            };
-            for (Token expected : expectedTokens) {
-                Token actual = lexer.nextToken();
-                assertEquals(expected.literal, actual.literal);
-                assertEquals(expected.type, actual.type);
-            }
-        }
+                new Token(TokenType.INT, "5"),
+                new Token(TokenType.SEMICOLON, ";"));
+    }
+
+    @Test
+    void testConsecutiveOperators() throws Exception {
+        assertTokens("==!=", new Token(TokenType.EQ, "=="), new Token(TokenType.NOT_EQ, "!="));
     }
 }
