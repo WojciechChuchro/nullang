@@ -2,6 +2,7 @@ package com.nullang.parser;
 
 import com.nullang.ast.Expression;
 import com.nullang.ast.Identifier;
+import com.nullang.ast.IntegerIdentifier;
 import com.nullang.ast.Program;
 import com.nullang.ast.Statement;
 import com.nullang.ast.statement.ExpressionStatement;
@@ -45,7 +46,8 @@ public class Parser implements AutoCloseable {
 
     public Parser(Lexer lexer) throws IOException {
         this.lexer = lexer;
-        prefixParseFns.put(TokenType.IDENT, () -> new Identifier(curToken, curToken.literal));
+        this.registerPrefix(TokenType.IDENT, () -> new Identifier(curToken, curToken.literal));
+        this.registerPrefix(TokenType.INT, () -> new IntegerIdentifier(curToken, Integer.parseInt(curToken.literal)));
 
         nextToken();
         nextToken();
@@ -62,7 +64,6 @@ public class Parser implements AutoCloseable {
     }
 
     public Program parseProgram() throws IOException {
-        log.info("Started parsing");
         Program p = new Program();
 
         while (curToken.type != TokenType.EOF) {
@@ -71,7 +72,6 @@ public class Parser implements AutoCloseable {
             nextToken();
         }
 
-        log.info("end parsing");
         return p;
     }
 

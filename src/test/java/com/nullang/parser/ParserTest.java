@@ -5,14 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
-
-import org.junit.jupiter.api.Test;
-
-import com.nullang.ast.Expression;
 import com.nullang.ast.Identifier;
+import com.nullang.ast.IntegerIdentifier;
 import com.nullang.ast.Program;
 import com.nullang.ast.Statement;
 import com.nullang.ast.statement.ExpressionStatement;
@@ -21,7 +15,16 @@ import com.nullang.ast.statement.ReturnStatement;
 import com.nullang.lexer.Lexer;
 import com.nullang.parser.errors.ParserException;
 
+import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
+
 public class ParserTest {
+    private final Logger log = LoggerFactory.getLogger(ParserTest.class);
 
     @Test
     public void testLetStatements() {
@@ -114,7 +117,9 @@ public class ParserTest {
             ParserException ex =
                     assertThrowsExactly(ParserException.class, () -> parser.parseProgram());
 
-            assertEquals("Expected '=' after identifierToken [type=SEMICOLON, literal=;]", ex.getMessage());
+            assertEquals(
+                    "Expected '=' after identifierToken [type=SEMICOLON, literal=;]",
+                    ex.getMessage());
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -134,7 +139,8 @@ public class ParserTest {
             ParserException ex =
                     assertThrowsExactly(ParserException.class, () -> parser.parseProgram());
 
-            assertEquals("Peek should be variable name!Token [type=ASSIGN, literal==]", ex.getMessage());
+            assertEquals(
+                    "Peek should be variable name!Token [type=ASSIGN, literal==]", ex.getMessage());
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -145,7 +151,8 @@ public class ParserTest {
         Reader input =
                 new StringReader(
                         """
-                            foobar
+                            foobar;
+                            5;
                         """);
 
         try (Lexer lexer = new Lexer(input);
@@ -155,19 +162,28 @@ public class ParserTest {
             assertNotNull(program, "parseProgram() returned null");
 
             var statements = program.statements;
-            assertEquals(1, statements.size(), "Expected 1 statements");
+            assertEquals(2, statements.size(), "Expected 2 statements");
 
-            String[] expectedIdentifiers = {"foobar"};
 
-            for (int i = 0; i < expectedIdentifiers.length; i++) {
-                Statement stmt = statements.get(i);
-                assertTrue(stmt instanceof ExpressionStatement, "Statement is not a ExpressionStatement");
+            Statement stmt = statements.get(0);
+            assertTrue(
+                    stmt instanceof ExpressionStatement, "Statement is not a ExpressionStatement");
 
-                ExpressionStatement stm = (ExpressionStatement) stmt;
-                //Expression ex = stm.getExpression();
-               // assertTrue(ex instanceof Identifier, "Expressions is not a Identifier");
-                assertEquals("foobar", stm.tokenLiteral());
-            }
+            ExpressionStatement stm = (ExpressionStatement) stmt;
+            assertEquals("foobar", stm.tokenLiteral());
+            assertEquals("foobar", ((Identifier)stm.getExpression()).getValue());
+
+            Statement stmt2 = statements.get(1);
+            assertTrue(
+                    stmt2 instanceof ExpressionStatement, "Statement is not a ExpressionStatement");
+            System.out.println(program);
+
+            ExpressionStatement stm2 = (ExpressionStatement) stmt2;
+            assertTrue(
+                    stm2.getExpression() instanceof IntegerIdentifier, "Expressions statement should be integer identifier!");
+
+            assertEquals("5", stm2.tokenLiteral());
+            assertEquals(5, ((IntegerIdentifier)stm2.getExpression()).getValue());
         } catch (IOException ex) {
             ex.printStackTrace();
         }
