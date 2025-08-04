@@ -1,5 +1,7 @@
 package com.nullang.parser;
 
+import com.nullang.ast.Expression;
+import com.nullang.ast.Identifier;
 import com.nullang.ast.Program;
 import com.nullang.ast.Statement;
 import com.nullang.ast.statement.ExpressionStatement;
@@ -13,10 +15,11 @@ import com.nullang.token.TokenType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.beans.Expression;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 public class Parser implements AutoCloseable {
     private final Logger log = LoggerFactory.getLogger(Parser.class);
@@ -36,8 +39,13 @@ public class Parser implements AutoCloseable {
                     TokenType.SLASH, Precedences.PRODUCT,
                     TokenType.ASTERISK, Precedences.PRODUCT);
 
+    private Map<TokenType, Supplier<Expression>> prefixParseFns = new HashMap<>();
+
+    // private Map<TokenType, InfixParseFn> infixParseFns = new HashMap<>();
+
     public Parser(Lexer lexer) throws IOException {
         this.lexer = lexer;
+        prefixParseFns.put(TokenType.IDENT, () -> new Identifier(curToken, curToken.literal));
 
         nextToken();
         nextToken();
@@ -57,7 +65,7 @@ public class Parser implements AutoCloseable {
         log.info("Started parsing");
         Program p = new Program();
 
-        while (peekToken.type != TokenType.EOF) {
+        while (curToken.type != TokenType.EOF) {
             Optional<Statement> statement = parseStatement();
             statement.ifPresent(s -> p.statements.add(s));
             nextToken();
@@ -78,18 +86,36 @@ public class Parser implements AutoCloseable {
         }
     }
 
-    private Optional<Statement> parseExpressionStatement() {
-        Expression ex = parseExpression(Precedences.LOWEST);
-        Statement stm = new ExpressionStatement(curToken, ex);
-
-        return Optional.of(stm);
+    private final void registerPrefix(TokenType type, Supplier<Expression> fn) {
+        this.prefixParseFns.put(type, fn);
     }
 
-    private Expression parseExpression(int lowest) {
-        int prefix = PRECEDENCES.get(lowest);
+    private Optional<Statement> parseExpressionStatement() {
+        Optional<Expression> optionalExpr = parseExpression(Precedences.LOWEST);
 
+        if (optionalExpr.isEmpty()) {
+            return Optional.empty();
+        }
 
-        
+        Expression expr = optionalExpr.get();
+        Statement stmt = new ExpressionStatement(curToken, expr);
+
+        if (peekToken.type == TokenType.SEMICOLON) {
+            nextToken();
+        }
+
+        return Optional.of(stmt);
+    }
+
+    private Optional<Expression> parseExpression(int lowest) {
+        Supplier<Expression> prefix = this.prefixParseFns.getOrDefault(curToken.type, null);
+
+        if (prefix == null) {
+            return Optional.empty();
+        }
+
+        Expression left = prefix.get();
+        return Optional.of(left);
     }
 
     private Optional<Statement> parseReturnStatement() {
@@ -109,7 +135,6 @@ public class Parser implements AutoCloseable {
             throw new ParserException("Peek should be variable name!" + peekToken);
         }
 
-        nextToken();
         if (!expectPeek(TokenType.ASSIGN)) {
             throw new ParserException("Expected '=' after identifier" + peekToken);
         }
@@ -124,13 +149,16 @@ public class Parser implements AutoCloseable {
         return Optional.of(st);
     }
 
-
     private boolean currentTokenIs(TokenType tokenType) {
         return curToken.type == tokenType;
     }
 
     private boolean expectPeek(TokenType type) {
-        return peekToken.type == type;
+        if (peekToken.type == type) {
+            nextToken();
+            return true;
+        }
+        return false;
     }
 
     public Token getCurToken() {
