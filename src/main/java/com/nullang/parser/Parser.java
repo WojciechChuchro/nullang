@@ -1,10 +1,12 @@
 package com.nullang.parser;
 
+import com.nullang.ast.BooleanIdentifier;
 import com.nullang.ast.Expression;
 import com.nullang.ast.Identifier;
 import com.nullang.ast.IntegerIdentifier;
 import com.nullang.ast.Program;
 import com.nullang.ast.Statement;
+import com.nullang.ast.expression.InfixExpression;
 import com.nullang.ast.expression.PrefixExpression;
 import com.nullang.ast.statement.ExpressionStatement;
 import com.nullang.ast.statement.LetStatement;
@@ -21,6 +23,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class Parser implements AutoCloseable {
@@ -42,8 +45,7 @@ public class Parser implements AutoCloseable {
                     TokenType.ASTERISK, Precedences.PRODUCT);
 
     private Map<TokenType, Supplier<Expression>> prefixParseFns = new HashMap<>();
-
-    // private Map<TokenType, InfixParseFn> infixParseFns = new HashMap<>();
+    private Map<TokenType, Function<Expression, Expression>> infixParseFns = new HashMap<>();
 
     public Parser(Lexer lexer) throws IOException {
         this.lexer = lexer;
@@ -53,9 +55,31 @@ public class Parser implements AutoCloseable {
                 () -> new IntegerIdentifier(curToken, Integer.parseInt(curToken.literal)));
         this.registerPrefix(TokenType.BANG, () -> parsePrefixExpression());
         this.registerPrefix(TokenType.MINUS, () -> parsePrefixExpression());
+        this.registerPrefix(TokenType.TRUE, () -> parseBoolean());
+        this.registerPrefix(TokenType.FALSE, () -> parseBoolean());
 
+        this.registerInfix(TokenType.PLUS, (Expression left) -> parseInfixExpression(left));
+        this.registerInfix(TokenType.MINUS, (Expression left) -> parseInfixExpression(left));
+        this.registerInfix(TokenType.SLASH, (Expression left) -> parseInfixExpression(left));
+        this.registerInfix(TokenType.ASTERISK, (Expression left) -> parseInfixExpression(left));
+        this.registerInfix(TokenType.EQ, (Expression left) -> parseInfixExpression(left));
+        this.registerInfix(TokenType.NOT_EQ, (Expression left) -> parseInfixExpression(left));
+        this.registerInfix(TokenType.LT, (Expression left) -> parseInfixExpression(left));
+        this.registerInfix(TokenType.GT, (Expression left) -> parseInfixExpression(left));
         nextToken();
         nextToken();
+    }
+
+    private Expression parseInfixExpression(Expression left) {
+        InfixExpression ex = new InfixExpression(curToken, curToken.literal);
+        ex.setLeft(left);
+
+        int p = curPrecedence();
+        nextToken();
+
+        ex.setRight(parseExpression(p).get());
+
+        return ex;
     }
 
     private Expression parsePrefixExpression() {
@@ -65,6 +89,10 @@ public class Parser implements AutoCloseable {
         parseExpression(Precedences.PREFIX).ifPresent(exp::setRight);
 
         return exp;
+    }
+
+    private Expression parseBoolean() {
+        return new BooleanIdentifier(this.curToken.type == TokenType.TRUE,this.curToken);
     }
 
     private void nextToken() {
@@ -104,6 +132,10 @@ public class Parser implements AutoCloseable {
         this.prefixParseFns.put(type, fn);
     }
 
+    private final void registerInfix(TokenType type, Function<Expression, Expression> fn) {
+        this.infixParseFns.put(type, fn);
+    }
+
     private Optional<Statement> parseExpressionStatement() {
         Token stmtToken = curToken;
         Optional<Expression> optionalExpr = parseExpression(Precedences.LOWEST);
@@ -131,6 +163,17 @@ public class Parser implements AutoCloseable {
         }
 
         Expression left = prefix.get();
+        while (peekToken.type != TokenType.SEMICOLON && lowest < peekPrecedence()) {
+            Function<Expression, Expression> infix = this.infixParseFns.get(peekToken.type);
+
+            if (infix == null) {
+                return Optional.of(left);
+            }
+
+            nextToken();
+            left = infix.apply(left);
+        }
+
         return Optional.of(left);
     }
 
@@ -175,6 +218,14 @@ public class Parser implements AutoCloseable {
             return true;
         }
         return false;
+    }
+
+    private int peekPrecedence() {
+        return this.PRECEDENCES.getOrDefault(this.peekToken.type, Precedences.LOWEST);
+    }
+
+    private int curPrecedence() {
+        return this.PRECEDENCES.getOrDefault(this.curToken.type, Precedences.LOWEST);
     }
 
     public Token getCurToken() {

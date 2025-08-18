@@ -6,7 +6,7 @@ public class Token {
 
     @Override
     public String toString() {
-        return "Token [type=" + type + ", literal=" + literal + "]";
+        return literal;
     }
 
     public Token(TokenType type, String literal) {

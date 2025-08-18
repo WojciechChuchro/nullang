@@ -1,14 +1,18 @@
 package com.nullang.parser;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.nullang.ast.BooleanIdentifier;
 import com.nullang.ast.Identifier;
 import com.nullang.ast.IntegerIdentifier;
 import com.nullang.ast.Program;
 import com.nullang.ast.Statement;
+import com.nullang.ast.expression.InfixExpression;
 import com.nullang.ast.expression.PrefixExpression;
 import com.nullang.ast.statement.ExpressionStatement;
 import com.nullang.ast.statement.LetStatement;
@@ -37,6 +41,12 @@ public class ParserTest {
                 Parser parser = new Parser(lexer)) {
             return assertThrowsExactly(ParserException.class, parser::parseProgram);
         }
+    }
+
+    private void testBooleanLiteral(BooleanIdentifier booleanLiteral, boolean value) {
+        System.out.println(booleanLiteral.tokenLiteral());
+        assertThat(booleanLiteral.value).isEqualTo(value);
+        assertThat(booleanLiteral.tokenLiteral()).isEqualTo(String.valueOf(value));
     }
 
     @Test
@@ -81,15 +91,13 @@ public class ParserTest {
     @Test
     void testLetStatementMissingAssignment() throws IOException {
         ParserException ex = parseInputExpectingException("let x;");
-        assertEquals(
-                "Expected '=' after identifierToken [type=SEMICOLON, literal=;]", ex.getMessage());
+        assertEquals("Expected '=' after identifier;", ex.getMessage());
     }
 
     @Test
     void testLetStatementMissingIdentifier() throws IOException {
         ParserException ex = parseInputExpectingException("let =;");
-        assertEquals(
-                "Peek should be variable name!Token [type=ASSIGN, literal==]", ex.getMessage());
+        assertEquals("Peek should be variable name!=", ex.getMessage());
     }
 
     @Test
@@ -236,5 +244,91 @@ public class ParserTest {
     void testPrefixExpressionOperators() throws IOException {
         assertPrefixExpression("!10;", "!", 10);
         assertPrefixExpression("-15;", "-", 15);
+    }
+
+    @Test
+    void testMultipleInfixExpressions() throws IOException {
+        Program program =
+                parseInput(
+                        """
+                            5 + 4;
+                            6 - 5;
+                            5 * 4;
+                            5 / 4;
+                            5 > 4;
+                            5 < 4;
+                            5 == 4;
+                            5 != 4;
+                        """);
+
+        assertNotNull(program);
+        assertEquals(8, program.statements.size());
+
+        ExpressionStatement stmt1 = (ExpressionStatement) program.statements.get(0);
+        InfixExpression infix1 = (InfixExpression) stmt1.getExpression();
+        assertEquals("5", infix1.getLeft().tokenLiteral());
+        assertEquals("+", infix1.getOperator());
+        assertEquals("4", infix1.getRight().tokenLiteral());
+
+        ExpressionStatement stmt2 = (ExpressionStatement) program.statements.get(1);
+        InfixExpression infix2 = (InfixExpression) stmt2.getExpression();
+        assertEquals("6", infix2.getLeft().tokenLiteral());
+        assertEquals("-", infix2.getOperator());
+        assertEquals("5", infix2.getRight().tokenLiteral());
+    }
+
+    @Test
+    void testMultipleOverallExpressions() throws IOException {
+        Program program =
+                parseInput(
+                        """
+                            2 + 2 * 2;
+                        """);
+
+        assertNotNull(program);
+        assertEquals(1, program.statements.size());
+        // TODO: it method program.toString() should return input as examble below
+        // assertEquals("2 + (2 * 2)", program.toString());
+    }
+
+    @Test
+    void testBooleanExpressions() throws IOException {
+        Program program =
+                parseInput(
+                        """
+                        true;
+                        """);
+
+        assertNotNull(program);
+        assertEquals(1, program.statements.size());
+        System.out.println(program.statements);
+        ExpressionStatement stmt =
+                assertInstanceOf(ExpressionStatement.class, program.statements.get(0));
+        assertInstanceOf(BooleanIdentifier.class, stmt.getExpression());
+        BooleanIdentifier booleanIdentifier = (BooleanIdentifier) stmt.getExpression();
+        testBooleanLiteral(booleanIdentifier, true);
+    }
+
+    @Test
+    void testPrefixBooleanExpressions() throws IOException {
+        Program program =
+                parseInput(
+                        """
+                        !true;
+                        """);
+
+        assertThat(program).isNotNull();
+        assertThat(program.statements)
+                .hasSize(1)
+                .allSatisfy(stmt -> assertThat(stmt).isInstanceOf(ExpressionStatement.class));
+        ExpressionStatement stmt = (ExpressionStatement) program.statements.get(0);
+
+        assertThat(stmt.getExpression()).isInstanceOf(PrefixExpression.class);
+
+        PrefixExpression prefixExpression = (PrefixExpression) stmt.getExpression();
+        assertThat(prefixExpression.getRight()).isInstanceOf(BooleanIdentifier.class);
+        assertThat(prefixExpression.getOperator()).isEqualTo("!");
+
+        testBooleanLiteral((BooleanIdentifier) prefixExpression.getRight(), false);
     }
 }
