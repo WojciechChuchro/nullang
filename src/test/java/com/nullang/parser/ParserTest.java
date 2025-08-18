@@ -331,4 +331,29 @@ public class ParserTest {
 
         testBooleanLiteral((BooleanIdentifier) prefixExpression.getRight(), true);
     }
+
+    @Test
+    void testInfixBooleanExpressions() throws IOException {
+        Program program =
+                parseInput(
+                        """
+                        false == true;
+                        """);
+
+        assertThat(program).isNotNull();
+        assertThat(program.statements)
+                .hasSize(1)
+                .allSatisfy(stmt -> assertThat(stmt).isInstanceOf(ExpressionStatement.class));
+        ExpressionStatement stmt = (ExpressionStatement) program.statements.get(0);
+
+        assertThat(stmt.getExpression()).isInstanceOf(InfixExpression.class);
+
+        InfixExpression prefixExpression = (InfixExpression) stmt.getExpression();
+        assertThat(prefixExpression.getRight()).isInstanceOf(BooleanIdentifier.class);
+        assertThat(prefixExpression.getLeft()).isInstanceOf(BooleanIdentifier.class);
+        assertThat(prefixExpression.getOperator()).isEqualTo("==");
+
+        testBooleanLiteral((BooleanIdentifier) prefixExpression.getRight(), true);
+        testBooleanLiteral((BooleanIdentifier) prefixExpression.getLeft(), false);
+    }
 }
