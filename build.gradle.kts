@@ -21,6 +21,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.slf4j:slf4j-api:2.0.17")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.assertj:assertj-core:4.0.0-M1")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
