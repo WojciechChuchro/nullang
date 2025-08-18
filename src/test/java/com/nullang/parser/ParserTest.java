@@ -329,6 +329,6 @@ public class ParserTest {
         assertThat(prefixExpression.getRight()).isInstanceOf(BooleanIdentifier.class);
         assertThat(prefixExpression.getOperator()).isEqualTo("!");
 
-        testBooleanLiteral((BooleanIdentifier) prefixExpression.getRight(), false);
+        testBooleanLiteral((BooleanIdentifier) prefixExpression.getRight(), true);
     }
 }
