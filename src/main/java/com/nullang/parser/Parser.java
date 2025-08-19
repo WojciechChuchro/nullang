@@ -57,6 +57,7 @@ public class Parser implements AutoCloseable {
         this.registerPrefix(TokenType.MINUS, () -> parsePrefixExpression());
         this.registerPrefix(TokenType.TRUE, () -> parseBoolean());
         this.registerPrefix(TokenType.FALSE, () -> parseBoolean());
+        this.registerPrefix(TokenType.LPAREN, () -> parseGroupedExpression());
 
         this.registerInfix(TokenType.PLUS, (Expression left) -> parseInfixExpression(left));
         this.registerInfix(TokenType.MINUS, (Expression left) -> parseInfixExpression(left));
@@ -68,6 +69,26 @@ public class Parser implements AutoCloseable {
         this.registerInfix(TokenType.GT, (Expression left) -> parseInfixExpression(left));
         nextToken();
         nextToken();
+    }
+
+    private Expression parseGroupedExpression() {
+        nextToken();
+        Optional<Expression> exp = parseExpression(Precedences.LOWEST);
+
+        if (peekToken.type != TokenType.RPAREN) {
+            log.error(
+                    "Invalid type for RPAREN in parse grouped expression for current token: "
+                            + curToken.type);
+            return null;
+        }
+
+        nextToken();
+
+        return exp.orElseGet(
+                () -> {
+                    log.error("Invalid expression in parsegrouped expression! ");
+                    return null;
+                });
     }
 
     private Expression parseInfixExpression(Expression left) {
@@ -92,7 +113,7 @@ public class Parser implements AutoCloseable {
     }
 
     private Expression parseBoolean() {
-        return new BooleanIdentifier(this.curToken.type == TokenType.TRUE,this.curToken);
+        return new BooleanIdentifier(this.curToken.type == TokenType.TRUE, this.curToken);
     }
 
     private void nextToken() {
@@ -109,6 +130,7 @@ public class Parser implements AutoCloseable {
         Program p = new Program();
 
         while (curToken.type != TokenType.EOF) {
+            log.info("parsing token: " + curToken);
             Optional<Statement> statement = parseStatement();
             statement.ifPresent(s -> p.statements.add(s));
             nextToken();
@@ -149,6 +171,7 @@ public class Parser implements AutoCloseable {
         Statement stmt = new ExpressionStatement(stmtToken, expr);
 
         if (peekToken.type == TokenType.SEMICOLON) {
+            log.info("Skipping semicolon");
             nextToken();
         }
 

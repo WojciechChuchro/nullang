@@ -24,12 +24,12 @@ public class ExpressionStatement implements Statement{
 
     @Override
     public String toString() {
-        return "ExpressionStatement [token=" + token + ", expression=" + expression + "]";
+        return expression.toString();
     }
 
     @Override
     public String tokenLiteral() {
-        return token.literal;
+        return expression.tokenLiteral();
     }
 
     @Override

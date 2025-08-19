@@ -40,17 +40,15 @@ public class InfixExpression implements Expression {
     }
 
     @Override
-    public String toString() {
-        return "InfixExpression [token="
-                + token
-                + ", left="
-                + left
-                + ", operator="
-                + operator
-                + ", right="
-                + right
-                + "]";
-    }
+public String toString() {
+    return "("
+            + left.toString()
+            + " "
+            + operator
+            + " "
+            + right.toString()
+            + ")";
+}
 
     @Override
     public String tokenLiteral() {

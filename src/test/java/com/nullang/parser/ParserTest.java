@@ -356,4 +356,19 @@ public class ParserTest {
         testBooleanLiteral((BooleanIdentifier) prefixExpression.getRight(), true);
         testBooleanLiteral((BooleanIdentifier) prefixExpression.getLeft(), false);
     }
+
+    @Test
+    void testGroupedExpressions() throws IOException {
+        Program program =
+                parseInput(
+                        """
+                            1 + (2 + 3) + 4
+                        """);
+
+        assertThat(program).isNotNull();
+        assertThat(program.statements)
+                .hasSize(1)
+                .allSatisfy(stmt -> assertThat(stmt).isInstanceOf(ExpressionStatement.class));
+        System.out.println(program);
+    }
 }

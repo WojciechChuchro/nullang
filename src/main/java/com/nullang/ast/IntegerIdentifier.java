@@ -28,6 +28,6 @@ public class IntegerIdentifier implements Expression {
 
     @Override
     public String toString() {
-        return "IntegerIdentifier [token=" + token + ", value=" + value + "]";
+        return value.toString();
     }
 }
