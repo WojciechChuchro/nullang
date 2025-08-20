@@ -12,6 +12,7 @@ import com.nullang.ast.Identifier;
 import com.nullang.ast.IntegerIdentifier;
 import com.nullang.ast.Program;
 import com.nullang.ast.Statement;
+import com.nullang.ast.expression.IfExpression;
 import com.nullang.ast.expression.InfixExpression;
 import com.nullang.ast.expression.PrefixExpression;
 import com.nullang.ast.statement.ExpressionStatement;
@@ -369,6 +370,70 @@ public class ParserTest {
         assertThat(program.statements)
                 .hasSize(1)
                 .allSatisfy(stmt -> assertThat(stmt).isInstanceOf(ExpressionStatement.class));
-        System.out.println(program);
+        assertThat(program.toString()).isEqualTo("((1 + (2 + 3)) + 4)");
+    }
+
+
+    @Test
+    void testIfExpression() throws IOException {
+        Program program =
+                parseInput(
+                        """
+                            if (x < y) { x }
+                        """);
+
+        assertThat(program).isNotNull();
+        assertThat(program.statements)
+                .hasSize(1)
+                .allSatisfy(stmt -> assertThat(stmt).isInstanceOf(ExpressionStatement.class));
+        ExpressionStatement expressionStatement = (ExpressionStatement) program.statements.get(0);
+
+        assertThat(expressionStatement.getExpression()).isInstanceOf(IfExpression.class);
+        IfExpression ifExp = (IfExpression) expressionStatement.getExpression();
+        assertThat(ifExp.getCondition()).isInstanceOf(InfixExpression.class);
+        assertThat(ifExp.getCondition().toString()).isEqualTo("(x < y)");
+        assertThat(ifExp.getConsequence().statementsSize()).isEqualTo(1);
+
+        assertThat(ifExp.getConsequence().getStatement(0)).isInstanceOf(ExpressionStatement.class);
+        ExpressionStatement expStatement = (ExpressionStatement)ifExp.getConsequence().getStatement(0);
+        assertThat(expStatement.toString()).isEqualTo("x");
+
+        assertThat(ifExp.getAlternative().isEmpty()).isEqualTo(true);
+
+        assertThat(program.toString()).isEqualTo("if (x < y)x");
+    }
+
+
+    @Test
+    void testIfElseExpression() throws IOException {
+        Program program =
+                parseInput(
+                        """
+                            if (x < y) { x } else { y }
+                        """);
+
+        assertThat(program).isNotNull();
+        assertThat(program.statements)
+                .hasSize(1)
+                .allSatisfy(stmt -> assertThat(stmt).isInstanceOf(ExpressionStatement.class));
+        ExpressionStatement expressionStatement = (ExpressionStatement) program.statements.get(0);
+
+        assertThat(expressionStatement.getExpression()).isInstanceOf(IfExpression.class);
+        IfExpression ifExp = (IfExpression) expressionStatement.getExpression();
+        assertThat(ifExp.getCondition()).isInstanceOf(InfixExpression.class);
+        assertThat(ifExp.getCondition().toString()).isEqualTo("(x < y)");
+        assertThat(ifExp.getConsequence().statementsSize()).isEqualTo(1);
+
+        assertThat(ifExp.getConsequence().getStatement(0)).isInstanceOf(ExpressionStatement.class);
+        ExpressionStatement expStatement = (ExpressionStatement)ifExp.getConsequence().getStatement(0);
+        assertThat(expStatement.toString()).isEqualTo("x");
+
+        assertThat(ifExp.getAlternative().isEmpty()).isEqualTo(false);
+
+        assertThat(ifExp.getAlternative().get().getStatement(0)).isInstanceOf(ExpressionStatement.class);
+        ExpressionStatement altStatement = (ExpressionStatement)ifExp.getAlternative().get().getStatement(0);
+        assertThat(altStatement.toString()).isEqualTo("y");
+
+        assertThat(program.toString()).isEqualTo("if (x < y)xelse y");
     }
 }

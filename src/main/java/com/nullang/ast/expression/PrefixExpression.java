@@ -32,7 +32,7 @@ public class PrefixExpression implements Expression{
 
     @Override
     public String toString() {
-        return "PrefixExpression [token=" + token + ", operator=" + operator + ", right=" + right + "]";
+        return operator + right;
     }
 
     @Override

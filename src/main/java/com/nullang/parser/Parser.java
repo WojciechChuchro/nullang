@@ -6,8 +6,10 @@ import com.nullang.ast.Identifier;
 import com.nullang.ast.IntegerIdentifier;
 import com.nullang.ast.Program;
 import com.nullang.ast.Statement;
+import com.nullang.ast.expression.IfExpression;
 import com.nullang.ast.expression.InfixExpression;
 import com.nullang.ast.expression.PrefixExpression;
+import com.nullang.ast.statement.BlockStatement;
 import com.nullang.ast.statement.ExpressionStatement;
 import com.nullang.ast.statement.LetStatement;
 import com.nullang.ast.statement.ReturnStatement;
@@ -18,6 +20,7 @@ import com.nullang.token.TokenType;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cglib.core.Block;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -58,6 +61,7 @@ public class Parser implements AutoCloseable {
         this.registerPrefix(TokenType.TRUE, () -> parseBoolean());
         this.registerPrefix(TokenType.FALSE, () -> parseBoolean());
         this.registerPrefix(TokenType.LPAREN, () -> parseGroupedExpression());
+        this.registerPrefix(TokenType.IF, () -> parseIfExpression());
 
         this.registerInfix(TokenType.PLUS, (Expression left) -> parseInfixExpression(left));
         this.registerInfix(TokenType.MINUS, (Expression left) -> parseInfixExpression(left));
@@ -69,6 +73,52 @@ public class Parser implements AutoCloseable {
         this.registerInfix(TokenType.GT, (Expression left) -> parseInfixExpression(left));
         nextToken();
         nextToken();
+    }
+
+    private Expression parseIfExpression() {
+        if (!expectPeek(TokenType.LPAREN)) {
+            return null;
+        }
+        nextToken();
+        Optional<Expression> condition = parseExpression(Precedences.LOWEST);
+
+        if (!expectPeek(TokenType.RPAREN)) {
+            return null;
+        }
+
+        if (!expectPeek(TokenType.LBRACE)) {
+            return null;
+        }
+        BlockStatement consequence = parseBlockStatement();
+
+
+        BlockStatement  alternative = null;
+        if (expectPeek(TokenType.ELSE)) {
+            nextToken();
+            if (expectPeek(TokenType.LBRACE)) {
+                return null;
+            }
+
+            alternative = parseBlockStatement();
+        }
+            
+        Expression con = condition.orElseThrow(() -> new ParserException("No condition provided"));
+        return new IfExpression(curToken, con, alternative, consequence);
+    }
+
+    private BlockStatement parseBlockStatement() {
+        BlockStatement block = new BlockStatement(this.curToken);
+
+        nextToken();
+        while (!currentTokenIs(TokenType.RBRACE) && !currentTokenIs(TokenType.EOF)) {
+            Optional<Statement> st = parseStatement();
+            st.ifPresent((s) -> {
+                block.addStatement(s);
+            });
+            nextToken();
+        }
+
+        return block;
     }
 
     private Expression parseGroupedExpression() {
