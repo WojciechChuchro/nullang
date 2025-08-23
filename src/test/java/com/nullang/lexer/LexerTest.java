@@ -81,6 +81,10 @@ public class LexerTest {
     }
 
     @Test
+    void testCommaOperator() throws Exception {
+        assertTokens(",", new Token(TokenType.COMMA, ","));
+    }
+    @Test
     void testEqualityOperators() throws Exception {
         assertTokens("== !=", new Token(TokenType.EQ, "=="), new Token(TokenType.NOT_EQ, "!="));
     }

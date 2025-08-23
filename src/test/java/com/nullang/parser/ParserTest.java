@@ -7,25 +7,30 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
+
+import org.junit.jupiter.api.Test;
+
 import com.nullang.ast.BooleanIdentifier;
+import com.nullang.ast.Expression;
 import com.nullang.ast.Identifier;
 import com.nullang.ast.IntegerIdentifier;
 import com.nullang.ast.Program;
 import com.nullang.ast.Statement;
+import com.nullang.ast.expression.CallExpression;
 import com.nullang.ast.expression.IfExpression;
 import com.nullang.ast.expression.InfixExpression;
 import com.nullang.ast.expression.PrefixExpression;
+import com.nullang.ast.statement.BlockStatement;
 import com.nullang.ast.statement.ExpressionStatement;
+import com.nullang.ast.statement.FnStatement;
 import com.nullang.ast.statement.LetStatement;
 import com.nullang.ast.statement.ReturnStatement;
 import com.nullang.lexer.Lexer;
 import com.nullang.parser.errors.ParserException;
-
-import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
+import com.nullang.token.TokenType;
 
 public class ParserTest {
     private Program parseInput(String input) throws IOException {
@@ -50,6 +55,27 @@ public class ParserTest {
         assertThat(booleanLiteral.tokenLiteral()).isEqualTo(String.valueOf(value));
     }
 
+    @Test
+    void testeLetStatement() throws IOException {
+        Program program =
+                parseInput(
+                        """
+                        let x = 5;
+                        """);
+
+        assertNotNull(program);
+        assertEquals(1, program.statements.size());
+
+        Statement stmt = program.statements.get(0);
+        assertTrue(stmt instanceof LetStatement, "Statement " + 0 + " should be LetStatement");
+        assertEquals("let", stmt.tokenLiteral());
+
+        LetStatement ls = (LetStatement) stmt;
+        assertThat(ls.getName().toString()).isEqualTo("x");
+        assertThat(ls.getValue()).isInstanceOf(IntegerIdentifier.class);
+        assertThat(((IntegerIdentifier) ls.getValue()).getValue()).isEqualTo(5);
+        assertThat(((IntegerIdentifier) ls.getValue()).toString()).isEqualTo("5");
+    }
     @Test
     void testeLetStatements() throws IOException {
         Program program =
@@ -83,10 +109,22 @@ public class ParserTest {
         assertNotNull(program);
         assertEquals(2, program.statements.size());
 
-        for (Statement stmt : program.statements) {
-            assertTrue(stmt instanceof ReturnStatement);
-            assertEquals("return", stmt.tokenLiteral());
-        }
+        assertTrue(program.statements.get(0) instanceof ReturnStatement);
+        ReturnStatement rs =(ReturnStatement) program.statements.get(0);
+        ReturnStatement exp = (ReturnStatement) rs;
+
+        assertThat(exp.getReturnValue()).isInstanceOf(IntegerIdentifier.class);
+        IntegerIdentifier in = (IntegerIdentifier) exp.getReturnValue();
+        assertThat(in.getValue()).isEqualTo(5);
+        assertThat(in.toString()).isEqualTo("5");
+
+        assertTrue(program.statements.get(1) instanceof ReturnStatement);
+        ReturnStatement rs2 =(ReturnStatement) program.statements.get(1);
+        ReturnStatement exp2 = (ReturnStatement) rs2;
+        assertThat(exp2.getReturnValue()).isInstanceOf(BooleanIdentifier.class);
+        BooleanIdentifier bn = (BooleanIdentifier) exp2.getReturnValue();
+        assertThat(bn.toString()).isEqualTo("true");
+
     }
 
     @Test
@@ -373,7 +411,6 @@ public class ParserTest {
         assertThat(program.toString()).isEqualTo("((1 + (2 + 3)) + 4)");
     }
 
-
     @Test
     void testIfExpression() throws IOException {
         Program program =
@@ -395,14 +432,14 @@ public class ParserTest {
         assertThat(ifExp.getConsequence().statementsSize()).isEqualTo(1);
 
         assertThat(ifExp.getConsequence().getStatement(0)).isInstanceOf(ExpressionStatement.class);
-        ExpressionStatement expStatement = (ExpressionStatement)ifExp.getConsequence().getStatement(0);
+        ExpressionStatement expStatement =
+                (ExpressionStatement) ifExp.getConsequence().getStatement(0);
         assertThat(expStatement.toString()).isEqualTo("x");
 
         assertThat(ifExp.getAlternative().isEmpty()).isEqualTo(true);
 
         assertThat(program.toString()).isEqualTo("if (x < y)x");
     }
-
 
     @Test
     void testIfElseExpression() throws IOException {
@@ -425,15 +462,122 @@ public class ParserTest {
         assertThat(ifExp.getConsequence().statementsSize()).isEqualTo(1);
 
         assertThat(ifExp.getConsequence().getStatement(0)).isInstanceOf(ExpressionStatement.class);
-        ExpressionStatement expStatement = (ExpressionStatement)ifExp.getConsequence().getStatement(0);
+        ExpressionStatement expStatement =
+                (ExpressionStatement) ifExp.getConsequence().getStatement(0);
         assertThat(expStatement.toString()).isEqualTo("x");
 
         assertThat(ifExp.getAlternative().isEmpty()).isEqualTo(false);
 
-        assertThat(ifExp.getAlternative().get().getStatement(0)).isInstanceOf(ExpressionStatement.class);
-        ExpressionStatement altStatement = (ExpressionStatement)ifExp.getAlternative().get().getStatement(0);
+        assertThat(ifExp.getAlternative().get().getStatement(0))
+                .isInstanceOf(ExpressionStatement.class);
+        ExpressionStatement altStatement =
+                (ExpressionStatement) ifExp.getAlternative().get().getStatement(0);
         assertThat(altStatement.toString()).isEqualTo("y");
 
         assertThat(program.toString()).isEqualTo("if (x < y)xelse y");
+    }
+
+    @Test
+    void testFnWithParametersExpression() throws IOException {
+        Program program =
+                parseInput(
+                        """
+                            fn(x, y) { x + y }
+                        """);
+
+        assertThat(program).isNotNull();
+        assertThat(program.statements)
+                .hasSize(1)
+                .allSatisfy(stmt -> assertThat(stmt).isInstanceOf(ExpressionStatement.class));
+        ExpressionStatement expressionStatement = (ExpressionStatement) program.statements.get(0);
+
+        assertThat(expressionStatement.getExpression()).isInstanceOf(FnStatement.class);
+        FnStatement fnStatement = (FnStatement) expressionStatement.getExpression();
+        assertThat(fnStatement.getToken().type).isEqualTo(TokenType.FUNCTION);
+        assertThat(fnStatement.getToken().literal).isEqualTo("fn");
+        assertThat(fnStatement.getBody()).isInstanceOf(BlockStatement.class);
+        assertThat(fnStatement.getBody().toString()).isEqualTo("(x + y)");
+
+        assertThat(fnStatement.toString()).isEqualTo("fn(x, y) {(x + y)}");
+
+        assertThat(fnStatement.getParameters()).hasSize(2);
+        assertThat(fnStatement.getParameters().get(0).toString()).isEqualTo("x");
+        assertThat(fnStatement.getParameters().get(1).toString()).isEqualTo("y");
+    }
+
+    @Test
+    void testFnWithoutParametersExpression() throws IOException {
+        Program program =
+                parseInput(
+                        """
+                            fn() { 1 + 2 }
+                        """);
+
+        assertThat(program).isNotNull();
+        assertThat(program.statements)
+                .hasSize(1)
+                .allSatisfy(stmt -> assertThat(stmt).isInstanceOf(ExpressionStatement.class));
+        ExpressionStatement expressionStatement = (ExpressionStatement) program.statements.get(0);
+
+        assertThat(expressionStatement.getExpression()).isInstanceOf(FnStatement.class);
+        FnStatement fnStatement = (FnStatement) expressionStatement.getExpression();
+        assertThat(fnStatement.getToken().type).isEqualTo(TokenType.FUNCTION);
+        assertThat(fnStatement.getToken().literal).isEqualTo("fn");
+        assertThat(fnStatement.getBody()).isInstanceOf(BlockStatement.class);
+        assertThat(fnStatement.getBody().toString()).isEqualTo("(1 + 2)");
+        assertThat(fnStatement.toString()).isEqualTo("fn() {(1 + 2)}");
+
+        assertThat(fnStatement.getParameters()).hasSize(0);
+    }
+
+    @Test
+    void testCallExpression() throws IOException {
+        Program program =
+                parseInput(
+                        """
+                            add(1, 2 * 3, 4 + 5);
+                        """);
+
+        assertThat(program).isNotNull();
+        assertThat(program.statements)
+                .hasSize(1)
+                .allSatisfy(stmt -> assertThat(stmt).isInstanceOf(ExpressionStatement.class));
+        ExpressionStatement expressionStatement = (ExpressionStatement) program.statements.get(0);
+        assertThat(expressionStatement.getExpression()).isInstanceOf(CallExpression.class);
+
+        CallExpression callExpression = (CallExpression) expressionStatement.getExpression();
+        assertThat(callExpression.getFunction().toString()).isEqualTo("add");
+        assertThat(callExpression.getFunction()).isInstanceOf(Identifier.class);
+        assertThat(callExpression.toString()).isEqualTo("add(1, (2 * 3), (4 + 5))");
+        assertThat(callExpression.getArguments().get(0).toString()).isEqualTo("1");
+        assertThat(callExpression.getArguments().get(1).toString()).isEqualTo("(2 * 3)");
+        assertThat(callExpression.getArguments().get(2).toString()).isEqualTo("(4 + 5)");
+
+        assertThat(callExpression.getArguments()).hasSize(3);
+    }
+
+    @Test
+    void testCallFnExpression() throws IOException {
+        Program program =
+                parseInput(
+                        """
+                            fn(x, y) { x + y; }(2, 3)
+                        """);
+
+        assertThat(program).isNotNull();
+        assertThat(program.statements)
+                .hasSize(1)
+                .allSatisfy(stmt -> assertThat(stmt).isInstanceOf(ExpressionStatement.class));
+        ExpressionStatement expressionStatement = (ExpressionStatement) program.statements.get(0);
+        assertThat(expressionStatement.getExpression()).isInstanceOf(CallExpression.class);
+
+        CallExpression callExpression = (CallExpression) expressionStatement.getExpression();
+        assertThat(callExpression.getFunction().toString()).isEqualTo("fn(x, y) {(x + y)}");
+        assertThat(callExpression.getFunction()).isInstanceOf(FnStatement.class);
+        assertThat(callExpression.toString()).isEqualTo("fn(x, y) {(x + y)}(2, 3)");
+        assertThat(callExpression.getArguments().get(0).toString()).isEqualTo("2");
+        assertThat(callExpression.getArguments().get(1).toString()).isEqualTo("3");
+
+        assertThat(callExpression.getArguments()).hasSize(2);
     }
 }

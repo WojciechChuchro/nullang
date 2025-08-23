@@ -6,11 +6,13 @@ import com.nullang.ast.Identifier;
 import com.nullang.ast.IntegerIdentifier;
 import com.nullang.ast.Program;
 import com.nullang.ast.Statement;
+import com.nullang.ast.expression.CallExpression;
 import com.nullang.ast.expression.IfExpression;
 import com.nullang.ast.expression.InfixExpression;
 import com.nullang.ast.expression.PrefixExpression;
 import com.nullang.ast.statement.BlockStatement;
 import com.nullang.ast.statement.ExpressionStatement;
+import com.nullang.ast.statement.FnStatement;
 import com.nullang.ast.statement.LetStatement;
 import com.nullang.ast.statement.ReturnStatement;
 import com.nullang.lexer.Lexer;
@@ -20,10 +22,11 @@ import com.nullang.token.TokenType;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.cglib.core.Block;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -45,6 +48,7 @@ public class Parser implements AutoCloseable {
                     TokenType.PLUS, Precedences.SUM,
                     TokenType.MINUS, Precedences.SUM,
                     TokenType.SLASH, Precedences.PRODUCT,
+                    TokenType.LPAREN, Precedences.CALL,
                     TokenType.ASTERISK, Precedences.PRODUCT);
 
     private Map<TokenType, Supplier<Expression>> prefixParseFns = new HashMap<>();
@@ -62,6 +66,7 @@ public class Parser implements AutoCloseable {
         this.registerPrefix(TokenType.FALSE, () -> parseBoolean());
         this.registerPrefix(TokenType.LPAREN, () -> parseGroupedExpression());
         this.registerPrefix(TokenType.IF, () -> parseIfExpression());
+        this.registerPrefix(TokenType.FUNCTION, () -> parseFnExpression());
 
         this.registerInfix(TokenType.PLUS, (Expression left) -> parseInfixExpression(left));
         this.registerInfix(TokenType.MINUS, (Expression left) -> parseInfixExpression(left));
@@ -71,8 +76,85 @@ public class Parser implements AutoCloseable {
         this.registerInfix(TokenType.NOT_EQ, (Expression left) -> parseInfixExpression(left));
         this.registerInfix(TokenType.LT, (Expression left) -> parseInfixExpression(left));
         this.registerInfix(TokenType.GT, (Expression left) -> parseInfixExpression(left));
+        this.registerInfix(TokenType.LPAREN, (Expression left) -> parseCallExpression(left));
         nextToken();
         nextToken();
+    }
+
+    private Expression parseCallExpression(Expression function) {
+        return new CallExpression(curToken, function, parseArguments());
+    }
+
+    private List<Expression> parseArguments() {
+        List<Expression> arguments = new ArrayList<>();
+        if (peekToken.type == TokenType.RPAREN) {
+            nextToken();
+            return arguments;
+        }
+
+        nextToken();
+        parseExpression(Precedences.LOWEST).ifPresent(exp -> arguments.add(exp));
+        while (peekToken.type == TokenType.COMMA) {
+            nextToken();
+            nextToken();
+            parseExpression(Precedences.LOWEST).ifPresent(exp -> arguments.add(exp));
+        }
+
+        if(expectPeek(TokenType.RPAREN)) {
+            return arguments;
+        }
+
+        return arguments;
+    }
+
+    private Expression parseFnExpression() {
+        Token cur = curToken;
+        if (!expectPeek(TokenType.LPAREN)) {
+            return null;
+        }
+        List<Identifier> parameters = parseParameters();
+
+        if (!expectPeek(TokenType.LBRACE)) {
+            return null;
+        }
+
+        BlockStatement body = parseBlockStatement();
+
+        Expression fnExpression = new FnStatement(cur, parameters, body);
+        return fnExpression;
+    }
+
+    private List<Identifier> parseParameters() {
+        List<Identifier> parameters = new ArrayList<>();
+
+        if (peekToken.type == TokenType.RPAREN) {
+            log.info("Peek token type is not RPARENT in parse parameters");
+            nextToken();
+            return parameters;
+        }
+        nextToken();
+        Identifier first = new Identifier(curToken, curToken.literal);
+        parameters.add(first);
+
+        while (peekToken.type == TokenType.COMMA) {
+            nextToken();
+            nextToken();
+
+            Identifier ident = new Identifier(curToken, curToken.literal);
+            parameters.add(ident);
+        }
+
+        if (!expectPeek(TokenType.RPAREN)) {
+            log.info(
+                    "Peek token type is not RPARENT in expect peek parsing parameters cur: "
+                            + curToken.literal
+                            + " peek: "
+                            + peekToken.literal);
+            nextToken();
+            return parameters;
+        }
+
+        return parameters;
     }
 
     private Expression parseIfExpression() {
@@ -91,8 +173,7 @@ public class Parser implements AutoCloseable {
         }
         BlockStatement consequence = parseBlockStatement();
 
-
-        BlockStatement  alternative = null;
+        BlockStatement alternative = null;
         if (expectPeek(TokenType.ELSE)) {
             nextToken();
             if (expectPeek(TokenType.LBRACE)) {
@@ -101,7 +182,7 @@ public class Parser implements AutoCloseable {
 
             alternative = parseBlockStatement();
         }
-            
+
         Expression con = condition.orElseThrow(() -> new ParserException("No condition provided"));
         return new IfExpression(curToken, con, alternative, consequence);
     }
@@ -112,9 +193,10 @@ public class Parser implements AutoCloseable {
         nextToken();
         while (!currentTokenIs(TokenType.RBRACE) && !currentTokenIs(TokenType.EOF)) {
             Optional<Statement> st = parseStatement();
-            st.ifPresent((s) -> {
-                block.addStatement(s);
-            });
+            st.ifPresent(
+                    (s) -> {
+                        block.addStatement(s);
+                    });
             nextToken();
         }
 
@@ -251,9 +333,10 @@ public class Parser implements AutoCloseable {
     }
 
     private Optional<Statement> parseReturnStatement() {
-        Statement stm = new ReturnStatement(curToken);
+        ReturnStatement stm = new ReturnStatement(curToken);
 
         nextToken();
+        parseExpression(Precedences.LOWEST).ifPresent(s -> stm.setReturnValue(s));
         while (curToken.type != TokenType.SEMICOLON) {
             nextToken();
         }
@@ -262,18 +345,20 @@ public class Parser implements AutoCloseable {
     }
 
     private Optional<Statement> parseLetStatement() {
-        Statement st = new LetStatement(curToken);
+        LetStatement st = new LetStatement(curToken);
         if (!expectPeek(TokenType.IDENT)) {
             throw new ParserException("Peek should be variable name!" + peekToken);
         }
+
+        st.setName(new Identifier(curToken, curToken.literal));
 
         if (!expectPeek(TokenType.ASSIGN)) {
             throw new ParserException("Expected '=' after identifier" + peekToken);
         }
 
-        // TODO: right now only skip till semicol
         nextToken();
-        while (!currentTokenIs(TokenType.SEMICOLON)) {
+        parseExpression(Precedences.LOWEST).ifPresent(s -> st.setValue(s));
+        while (peekToken.type == TokenType.SEMICOLON) {
             log.info("Skipping semicol");
             nextToken();
         }

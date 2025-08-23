@@ -8,16 +8,32 @@ import com.nullang.token.Token;
 
 public class LetStatement implements Statement {
     private final Token token;
-    public Identifier name;
-    public Expression value;
+    private Identifier name;
+    private Expression value;
+
+    public LetStatement(Token token) {
+        this.token = token;
+    }
+
+    public Identifier getName() {
+        return name;
+    }
+
+    public void setName(Identifier name) {
+        this.name = name;
+    }
+
+    public Expression getValue() {
+        return value;
+    }
+
+    public void setValue(Expression value) {
+        this.value = value;
+    }
 
     @Override
     public String toString() {
         return "LetStatement [token=" + token + ", name=" + name + ", value=" + value + "]";
-    }
-
-    public LetStatement(Token token) {
-        this.token = token;
     }
 
     @Override

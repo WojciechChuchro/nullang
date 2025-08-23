@@ -17,6 +17,11 @@ public class BooleanIdentifier implements Expression{
     }
 
     @Override
+    public String toString() {
+        return String.valueOf(value);
+    }
+
+    @Override
     public Node expressionNode() {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'expressionNode'");

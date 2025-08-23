@@ -80,6 +80,9 @@ public class Lexer implements AutoCloseable {
             case '>':
                 token = new Token(TokenType.GT, ">");
                 break;
+            case ',':
+                token = new Token(TokenType.COMMA, ",");
+                break;
             case '=':
                 if (peekChar() == '=') {
                     readChar();

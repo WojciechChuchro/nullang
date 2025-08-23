@@ -8,9 +8,20 @@ import com.nullang.token.Token;
 
 public class ReturnStatement implements Statement{
     private final Token token;
-    // TODO: add expression 
     private Expression returnValue;
     
+
+    public Token getToken() {
+        return token;
+    }
+
+    public Expression getReturnValue() {
+        return returnValue;
+    }
+
+    public void setReturnValue(Expression returnValue) {
+        this.returnValue = returnValue;
+    }
 
     public ReturnStatement(Token token) {
         this.token = token;
