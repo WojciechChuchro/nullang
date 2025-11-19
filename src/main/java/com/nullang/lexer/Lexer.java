@@ -3,14 +3,12 @@ package com.nullang.lexer;
 import com.nullang.token.Token;
 import com.nullang.token.TokenType;
 
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.util.HashMap;
 import java.util.Map;
 
-@Component
 public class Lexer implements AutoCloseable {
     private final Reader reader;
     private int currentChar;
@@ -42,15 +40,13 @@ public class Lexer implements AutoCloseable {
         }
     }
 
-    public char readChar() throws IOException {
-        char result = (char) currentChar;
+    public void readChar() throws IOException {
         if (peekedChar == -2) {
             currentChar = reader.read();
         } else {
             currentChar = peekedChar;
             peekedChar = -2;
         }
-        return result;
     }
 
     public Token nextToken() throws IOException {
@@ -116,7 +112,7 @@ public class Lexer implements AutoCloseable {
             default:
                 if (isLetter()) {
                     String identifier = readIdentifier();
-                    return lokkupIdentifier(identifier);
+                    return lockupIdentifier(identifier);
                 } else if (isDigit()) {
                     String number = readNumber();
                     return new Token(TokenType.INT, number);
@@ -159,7 +155,7 @@ public class Lexer implements AutoCloseable {
         return peekedChar;
     }
 
-    private Token lokkupIdentifier(String identifier) {
+    private Token lockupIdentifier(String identifier) {
         TokenType type = keywords.getOrDefault(identifier, TokenType.IDENT);
         return new Token(type, identifier);
     }

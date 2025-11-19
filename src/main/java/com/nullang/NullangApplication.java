@@ -1,6 +1,7 @@
 package com.nullang;
 
 import com.nullang.ast.Program;
+import com.nullang.eval.Eval;
 import com.nullang.lexer.Lexer;
 import com.nullang.parser.Parser;
 
@@ -10,22 +11,21 @@ import java.util.Scanner;
 
 public class NullangApplication {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         Scanner sc = new Scanner(System.in);
 
         System.out.println("Enter code to parse:");
         while (true) {
             System.out.print(">> ");
             if (!sc.hasNextLine()) break;
+
             String input = sc.nextLine();
             if (input.equals("exit")) break;
 
-            try {
-                Program program = parseInput(input);
-                System.out.println("Parsed: " + program);
-            } catch (Exception e) {
-                System.err.println("Error: " + e.getMessage());
-            }
+            Program program = parseInput(input);
+            var eval = new Eval();
+            var res = eval.evalStatements(program.statements);
+            System.out.println("Evaluated: " + res.inspect());
         }
     }
 

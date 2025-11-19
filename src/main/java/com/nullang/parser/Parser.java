@@ -262,9 +262,9 @@ public class Parser implements AutoCloseable {
         Program p = new Program();
 
         while (curToken.type != TokenType.EOF) {
-            log.info("parsing token: " + curToken);
+            log.info("parsing token: {}", curToken);
             Optional<Statement> statement = parseStatement();
-            statement.ifPresent(s -> p.statements.add(s));
+            statement.ifPresent(p.statements::add);
             nextToken();
         }
 
@@ -295,7 +295,7 @@ public class Parser implements AutoCloseable {
         Optional<Expression> optionalExpr = parseExpression(Precedences.LOWEST);
 
         if (optionalExpr.isEmpty()) {
-            log.error("No prefix parse function found for: " + curToken.type);
+            log.error("No prefix parse function found for: {}", curToken.type);
             return Optional.empty();
         }
 
@@ -336,7 +336,7 @@ public class Parser implements AutoCloseable {
         ReturnStatement stm = new ReturnStatement(curToken);
 
         nextToken();
-        parseExpression(Precedences.LOWEST).ifPresent(s -> stm.setReturnValue(s));
+        parseExpression(Precedences.LOWEST).ifPresent(stm::setReturnValue);
         while (curToken.type != TokenType.SEMICOLON) {
             nextToken();
         }
@@ -357,7 +357,7 @@ public class Parser implements AutoCloseable {
         }
 
         nextToken();
-        parseExpression(Precedences.LOWEST).ifPresent(s -> st.setValue(s));
+        parseExpression(Precedences.LOWEST).ifPresent(st::setValue);
         while (peekToken.type == TokenType.SEMICOLON) {
             log.info("Skipping semicol");
             nextToken();
