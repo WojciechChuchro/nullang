@@ -5,10 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.nullang.ast.Node;
-import com.nullang.ast.Statement;
 import com.nullang.token.Token;
 
-public final class BlockStatement implements Statement{
+public class BlockStatement implements Statement {
     private final Token token;
     private final List<Statement> statements = new ArrayList<>();
 
@@ -29,7 +28,7 @@ public final class BlockStatement implements Statement{
 
     @Override
     public String toString() {
-        StringBuffer builder = new StringBuffer();
+        StringBuilder builder = new StringBuilder();
         for (Statement s: this.statements) {
             builder.append(s.toString());
         }
@@ -40,14 +39,12 @@ public final class BlockStatement implements Statement{
 
     @Override
     public String tokenLiteral() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'tokenLiteral'");
+        return token.literal();
     }
 
     @Override
     public Node StatementNode() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'StatementNode'");
+        return this;
     }
 
     

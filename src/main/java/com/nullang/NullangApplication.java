@@ -24,7 +24,7 @@ public class NullangApplication {
 
             Program program = parseInput(input);
             var eval = new Eval();
-            var res = eval.evalStatements(program.statements);
+            var res = eval.evaluate(program);
             System.out.println("Evaluated: " + res.inspect());
         }
     }

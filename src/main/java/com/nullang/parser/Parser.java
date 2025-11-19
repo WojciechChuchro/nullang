@@ -1,84 +1,127 @@
 package com.nullang.parser;
 
-import com.nullang.ast.BooleanIdentifier;
-import com.nullang.ast.Expression;
-import com.nullang.ast.Identifier;
-import com.nullang.ast.IntegerIdentifier;
-import com.nullang.ast.Program;
-import com.nullang.ast.Statement;
+import com.nullang.ast.*;
 import com.nullang.ast.expression.CallExpression;
 import com.nullang.ast.expression.IfExpression;
 import com.nullang.ast.expression.InfixExpression;
 import com.nullang.ast.expression.PrefixExpression;
-import com.nullang.ast.statement.BlockStatement;
-import com.nullang.ast.statement.ExpressionStatement;
-import com.nullang.ast.statement.FnStatement;
-import com.nullang.ast.statement.LetStatement;
-import com.nullang.ast.statement.ReturnStatement;
+import com.nullang.ast.statement.*;
 import com.nullang.lexer.Lexer;
 import com.nullang.parser.errors.ParserException;
 import com.nullang.token.Token;
 import com.nullang.token.TokenType;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class Parser implements AutoCloseable {
-    private final Logger log = LoggerFactory.getLogger(Parser.class);
-
     private final Lexer lexer;
-
     private Token curToken;
     private Token peekToken;
-    private static final Map<TokenType, Integer> PRECEDENCES =
-            Map.of(
-                    TokenType.EQ, Precedences.EQUALS,
-                    TokenType.NOT_EQ, Precedences.EQUALS,
-                    TokenType.LT, Precedences.LESSGREATER,
-                    TokenType.GT, Precedences.LESSGREATER,
-                    TokenType.PLUS, Precedences.SUM,
-                    TokenType.MINUS, Precedences.SUM,
-                    TokenType.SLASH, Precedences.PRODUCT,
-                    TokenType.LPAREN, Precedences.CALL,
-                    TokenType.ASTERISK, Precedences.PRODUCT);
+    private final Map<TokenType, Supplier<Expression>> prefixParseFns = Map.ofEntries(
+            Map.entry(TokenType.IDENT, this::parseIdentifier),
+            Map.entry(TokenType.INT, this::parseInteger),
+            Map.entry(TokenType.BANG, this::parsePrefixExpression),
+            Map.entry(TokenType.MINUS, this::parsePrefixExpression),
+            Map.entry(TokenType.TRUE, this::parseBoolean),
+            Map.entry(TokenType.FALSE, this::parseBoolean),
+            Map.entry(TokenType.LPAREN, this::parseGroupedExpression),
+            Map.entry(TokenType.IF, this::parseIfExpression),
+            Map.entry(TokenType.FUNCTION, this::parseFnExpression)
+    );
 
-    private Map<TokenType, Supplier<Expression>> prefixParseFns = new HashMap<>();
-    private Map<TokenType, Function<Expression, Expression>> infixParseFns = new HashMap<>();
+    private final Map<TokenType, Function<Expression, Expression>> infixParseFns = Map.ofEntries(
+            Map.entry(TokenType.PLUS, this::parseInfixExpression),
+            Map.entry(TokenType.MINUS, this::parseInfixExpression),
+            Map.entry(TokenType.SLASH, this::parseInfixExpression),
+            Map.entry(TokenType.ASTERISK, this::parseInfixExpression),
+            Map.entry(TokenType.EQ, this::parseInfixExpression),
+            Map.entry(TokenType.NOT_EQ, this::parseInfixExpression),
+            Map.entry(TokenType.LT, this::parseInfixExpression),
+            Map.entry(TokenType.GT, this::parseInfixExpression),
+            Map.entry(TokenType.LPAREN, this::parseCallExpression)
+    );
 
-    public Parser(Lexer lexer) throws IOException {
+    public Parser(Lexer lexer) {
         this.lexer = lexer;
-        this.registerPrefix(TokenType.IDENT, () -> new Identifier(curToken, curToken.literal));
-        this.registerPrefix(
-                TokenType.INT,
-                () -> new IntegerIdentifier(curToken, Integer.parseInt(curToken.literal)));
-        this.registerPrefix(TokenType.BANG, () -> parsePrefixExpression());
-        this.registerPrefix(TokenType.MINUS, () -> parsePrefixExpression());
-        this.registerPrefix(TokenType.TRUE, () -> parseBoolean());
-        this.registerPrefix(TokenType.FALSE, () -> parseBoolean());
-        this.registerPrefix(TokenType.LPAREN, () -> parseGroupedExpression());
-        this.registerPrefix(TokenType.IF, () -> parseIfExpression());
-        this.registerPrefix(TokenType.FUNCTION, () -> parseFnExpression());
 
-        this.registerInfix(TokenType.PLUS, (Expression left) -> parseInfixExpression(left));
-        this.registerInfix(TokenType.MINUS, (Expression left) -> parseInfixExpression(left));
-        this.registerInfix(TokenType.SLASH, (Expression left) -> parseInfixExpression(left));
-        this.registerInfix(TokenType.ASTERISK, (Expression left) -> parseInfixExpression(left));
-        this.registerInfix(TokenType.EQ, (Expression left) -> parseInfixExpression(left));
-        this.registerInfix(TokenType.NOT_EQ, (Expression left) -> parseInfixExpression(left));
-        this.registerInfix(TokenType.LT, (Expression left) -> parseInfixExpression(left));
-        this.registerInfix(TokenType.GT, (Expression left) -> parseInfixExpression(left));
-        this.registerInfix(TokenType.LPAREN, (Expression left) -> parseCallExpression(left));
+        curToken = lexer.nextToken();
+        peekToken = lexer.nextToken();
+    }
+
+    public Program parseProgram() {
+        Program program = new Program();
+
+        while (curToken.type() != TokenType.EOF) {
+            Optional<Statement> statement = parseStatement();
+            statement.ifPresent(program.statements::add);
+            nextToken();
+        }
+
+        return program;
+    }
+
+    private Optional<Statement> parseStatement() {
+        return switch (curToken.type()) {
+            case TokenType.LET ->
+                    parseLetStatement();
+            case TokenType.RETURN ->
+                    parseReturnStatement();
+            default ->
+                    parseExpressionStatement();
+        };
+    }
+
+    private Optional<Statement> parseLetStatement() {
+        LetStatement st = new LetStatement(curToken);
+        if (!consumeIfPeek(TokenType.IDENT)) {
+            throw new ParserException("Peek should be variable name!" + peekToken);
+        }
+
+        st.setName(new Identifier(curToken, curToken.literal()));
+
+        if (!consumeIfPeek(TokenType.ASSIGN)) {
+            throw new ParserException("Expected '=' after identifier" + peekToken);
+        }
+
         nextToken();
+        parseExpression(Precedences.LOWEST).ifPresent(st::setValue);
+        while (peekToken.type() == TokenType.SEMICOLON) {
+            nextToken();
+        }
+
+        return Optional.of(st);
+    }
+
+    private Optional<Statement> parseReturnStatement() {
+        ReturnStatement stm = new ReturnStatement(curToken);
+
         nextToken();
+        parseExpression(Precedences.LOWEST).ifPresent(stm::setReturnValue);
+        while (curToken.type() != TokenType.SEMICOLON) {
+            nextToken();
+        }
+
+        return Optional.of(stm);
+    }
+
+    private Optional<Statement> parseExpressionStatement() {
+        Token stmtToken = curToken;
+        Optional<Expression> optionalExpr = parseExpression(Precedences.LOWEST);
+
+        if (optionalExpr.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Expression expr = optionalExpr.get();
+        Statement stmt = new ExpressionStatement(stmtToken, expr);
+
+        if (peekToken.type() == TokenType.SEMICOLON) {
+            nextToken();
+        }
+
+        return Optional.of(stmt);
     }
 
     private Expression parseCallExpression(Expression function) {
@@ -87,69 +130,60 @@ public class Parser implements AutoCloseable {
 
     private List<Expression> parseArguments() {
         List<Expression> arguments = new ArrayList<>();
-        if (peekToken.type == TokenType.RPAREN) {
+        if (peekToken.type() == TokenType.RPAREN) {
             nextToken();
             return arguments;
         }
 
         nextToken();
-        parseExpression(Precedences.LOWEST).ifPresent(exp -> arguments.add(exp));
-        while (peekToken.type == TokenType.COMMA) {
+        parseExpression(Precedences.LOWEST).ifPresent(arguments::add);
+        while (peekToken.type() == TokenType.COMMA) {
             nextToken();
             nextToken();
-            parseExpression(Precedences.LOWEST).ifPresent(exp -> arguments.add(exp));
+            parseExpression(Precedences.LOWEST).ifPresent(arguments::add);
         }
 
-        if(expectPeek(TokenType.RPAREN)) {
-            return arguments;
-        }
+        consumeIfPeek(TokenType.RPAREN);
 
         return arguments;
     }
 
     private Expression parseFnExpression() {
         Token cur = curToken;
-        if (!expectPeek(TokenType.LPAREN)) {
+        if (!consumeIfPeek(TokenType.LPAREN)) {
             return null;
         }
         List<Identifier> parameters = parseParameters();
 
-        if (!expectPeek(TokenType.LBRACE)) {
+        if (!consumeIfPeek(TokenType.LBRACE)) {
             return null;
         }
 
         BlockStatement body = parseBlockStatement();
 
-        Expression fnExpression = new FnStatement(cur, parameters, body);
-        return fnExpression;
+        return new FnStatement(cur, parameters, body);
     }
 
     private List<Identifier> parseParameters() {
         List<Identifier> parameters = new ArrayList<>();
 
-        if (peekToken.type == TokenType.RPAREN) {
-            log.info("Peek token type is not RPARENT in parse parameters");
+        if (peekToken.type() == TokenType.RPAREN) {
             nextToken();
             return parameters;
         }
         nextToken();
-        Identifier first = new Identifier(curToken, curToken.literal);
+        Identifier first = new Identifier(curToken, curToken.literal());
         parameters.add(first);
 
-        while (peekToken.type == TokenType.COMMA) {
+        while (peekToken.type() == TokenType.COMMA) {
             nextToken();
             nextToken();
 
-            Identifier ident = new Identifier(curToken, curToken.literal);
+            Identifier ident = new Identifier(curToken, curToken.literal());
             parameters.add(ident);
         }
 
-        if (!expectPeek(TokenType.RPAREN)) {
-            log.info(
-                    "Peek token type is not RPARENT in expect peek parsing parameters cur: "
-                            + curToken.literal
-                            + " peek: "
-                            + peekToken.literal);
+        if (!consumeIfPeek(TokenType.RPAREN)) {
             nextToken();
             return parameters;
         }
@@ -158,25 +192,25 @@ public class Parser implements AutoCloseable {
     }
 
     private Expression parseIfExpression() {
-        if (!expectPeek(TokenType.LPAREN)) {
+        if (!consumeIfPeek(TokenType.LPAREN)) {
             return null;
         }
         nextToken();
         Optional<Expression> condition = parseExpression(Precedences.LOWEST);
 
-        if (!expectPeek(TokenType.RPAREN)) {
+        if (!consumeIfPeek(TokenType.RPAREN)) {
             return null;
         }
 
-        if (!expectPeek(TokenType.LBRACE)) {
+        if (!consumeIfPeek(TokenType.LBRACE)) {
             return null;
         }
         BlockStatement consequence = parseBlockStatement();
 
         BlockStatement alternative = null;
-        if (expectPeek(TokenType.ELSE)) {
+        if (consumeIfPeek(TokenType.ELSE)) {
             nextToken();
-            if (expectPeek(TokenType.LBRACE)) {
+            if (consumeIfPeek(TokenType.LBRACE)) {
                 return null;
             }
 
@@ -191,12 +225,10 @@ public class Parser implements AutoCloseable {
         BlockStatement block = new BlockStatement(this.curToken);
 
         nextToken();
-        while (!currentTokenIs(TokenType.RBRACE) && !currentTokenIs(TokenType.EOF)) {
+        while (currentTokenIs(TokenType.RBRACE) && currentTokenIs(TokenType.EOF)) {
             Optional<Statement> st = parseStatement();
             st.ifPresent(
-                    (s) -> {
-                        block.addStatement(s);
-                    });
+                    block::addStatement);
             nextToken();
         }
 
@@ -207,24 +239,17 @@ public class Parser implements AutoCloseable {
         nextToken();
         Optional<Expression> exp = parseExpression(Precedences.LOWEST);
 
-        if (peekToken.type != TokenType.RPAREN) {
-            log.error(
-                    "Invalid type for RPAREN in parse grouped expression for current token: "
-                            + curToken.type);
+        if (peekToken.type() != TokenType.RPAREN) {
             return null;
         }
 
         nextToken();
 
-        return exp.orElseGet(
-                () -> {
-                    log.error("Invalid expression in parsegrouped expression! ");
-                    return null;
-                });
+        return exp.orElseThrow(() -> new ParserException("No expression provided"));
     }
 
     private Expression parseInfixExpression(Expression left) {
-        InfixExpression ex = new InfixExpression(curToken, curToken.literal);
+        InfixExpression ex = new InfixExpression(curToken, curToken.literal());
         ex.setLeft(left);
 
         int p = curPrecedence();
@@ -236,7 +261,7 @@ public class Parser implements AutoCloseable {
     }
 
     private Expression parsePrefixExpression() {
-        PrefixExpression exp = new PrefixExpression(curToken, curToken.literal);
+        PrefixExpression exp = new PrefixExpression(curToken, curToken.literal());
 
         nextToken();
         parseExpression(Precedences.PREFIX).ifPresent(exp::setRight);
@@ -245,81 +270,27 @@ public class Parser implements AutoCloseable {
     }
 
     private Expression parseBoolean() {
-        return new BooleanIdentifier(this.curToken.type == TokenType.TRUE, this.curToken);
+        return new BooleanIdentifier(this.curToken.type() == TokenType.TRUE, this.curToken);
     }
 
-    private void nextToken() {
-        curToken = peekToken;
-        try {
-            peekToken = lexer.nextToken();
-
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
+    private Expression parseInteger() {
+        return new IntegerIdentifier(curToken, Integer.parseInt(curToken.literal()));
     }
 
-    public Program parseProgram() throws IOException {
-        Program p = new Program();
-
-        while (curToken.type != TokenType.EOF) {
-            log.info("parsing token: {}", curToken);
-            Optional<Statement> statement = parseStatement();
-            statement.ifPresent(p.statements::add);
-            nextToken();
-        }
-
-        return p;
-    }
-
-    private Optional<Statement> parseStatement() {
-        switch (curToken.type) {
-            case TokenType.LET:
-                return parseLetStatement();
-            case TokenType.RETURN:
-                return parseReturnStatement();
-            default:
-                return parseExpressionStatement();
-        }
-    }
-
-    private final void registerPrefix(TokenType type, Supplier<Expression> fn) {
-        this.prefixParseFns.put(type, fn);
-    }
-
-    private final void registerInfix(TokenType type, Function<Expression, Expression> fn) {
-        this.infixParseFns.put(type, fn);
-    }
-
-    private Optional<Statement> parseExpressionStatement() {
-        Token stmtToken = curToken;
-        Optional<Expression> optionalExpr = parseExpression(Precedences.LOWEST);
-
-        if (optionalExpr.isEmpty()) {
-            log.error("No prefix parse function found for: {}", curToken.type);
-            return Optional.empty();
-        }
-
-        Expression expr = optionalExpr.get();
-        Statement stmt = new ExpressionStatement(stmtToken, expr);
-
-        if (peekToken.type == TokenType.SEMICOLON) {
-            log.info("Skipping semicolon");
-            nextToken();
-        }
-
-        return Optional.of(stmt);
+    private Expression parseIdentifier() {
+        return new Identifier(curToken, curToken.literal());
     }
 
     private Optional<Expression> parseExpression(int lowest) {
-        Supplier<Expression> prefix = this.prefixParseFns.getOrDefault(curToken.type, null);
+        Supplier<Expression> prefix = this.prefixParseFns.getOrDefault(curToken.type(), null);
 
         if (prefix == null) {
             return Optional.empty();
         }
 
         Expression left = prefix.get();
-        while (peekToken.type != TokenType.SEMICOLON && lowest < peekPrecedence()) {
-            Function<Expression, Expression> infix = this.infixParseFns.get(peekToken.type);
+        while (peekToken.type() != TokenType.SEMICOLON && lowest < peekPrecedence()) {
+            Function<Expression, Expression> infix = this.infixParseFns.get(peekToken.type());
 
             if (infix == null) {
                 return Optional.of(left);
@@ -332,46 +303,14 @@ public class Parser implements AutoCloseable {
         return Optional.of(left);
     }
 
-    private Optional<Statement> parseReturnStatement() {
-        ReturnStatement stm = new ReturnStatement(curToken);
 
-        nextToken();
-        parseExpression(Precedences.LOWEST).ifPresent(stm::setReturnValue);
-        while (curToken.type != TokenType.SEMICOLON) {
-            nextToken();
-        }
-
-        return Optional.of(stm);
-    }
-
-    private Optional<Statement> parseLetStatement() {
-        LetStatement st = new LetStatement(curToken);
-        if (!expectPeek(TokenType.IDENT)) {
-            throw new ParserException("Peek should be variable name!" + peekToken);
-        }
-
-        st.setName(new Identifier(curToken, curToken.literal));
-
-        if (!expectPeek(TokenType.ASSIGN)) {
-            throw new ParserException("Expected '=' after identifier" + peekToken);
-        }
-
-        nextToken();
-        parseExpression(Precedences.LOWEST).ifPresent(st::setValue);
-        while (peekToken.type == TokenType.SEMICOLON) {
-            log.info("Skipping semicol");
-            nextToken();
-        }
-
-        return Optional.of(st);
-    }
 
     private boolean currentTokenIs(TokenType tokenType) {
-        return curToken.type == tokenType;
+        return curToken.type() != tokenType;
     }
 
-    private boolean expectPeek(TokenType type) {
-        if (peekToken.type == type) {
+    private boolean consumeIfPeek(TokenType type) {
+        if (peekToken.type() == type) {
             nextToken();
             return true;
         }
@@ -379,23 +318,20 @@ public class Parser implements AutoCloseable {
     }
 
     private int peekPrecedence() {
-        return this.PRECEDENCES.getOrDefault(this.peekToken.type, Precedences.LOWEST);
+        return PrecedenceManager.getPrecedence(this.peekToken.type());
     }
 
     private int curPrecedence() {
-        return this.PRECEDENCES.getOrDefault(this.curToken.type, Precedences.LOWEST);
+        return PrecedenceManager.getPrecedence(this.curToken.type());
     }
 
-    public Token getCurToken() {
-        return curToken;
-    }
-
-    public Token getPeekToken() {
-        return peekToken;
+    private void nextToken() {
+        curToken = peekToken;
+        peekToken = lexer.nextToken();
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         this.lexer.close();
     }
 }

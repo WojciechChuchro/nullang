@@ -37,7 +37,7 @@ public class PrefixExpression implements Expression{
 
     @Override
     public String tokenLiteral() {
-        return token.literal;
+        return token.literal();
     }
 
     @Override

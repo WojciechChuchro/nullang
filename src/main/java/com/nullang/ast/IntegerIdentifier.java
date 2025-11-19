@@ -18,7 +18,7 @@ public class IntegerIdentifier implements Expression {
 
     @Override
     public String tokenLiteral() {
-        return token.literal;
+        return token.literal();
     }
 
     @Override

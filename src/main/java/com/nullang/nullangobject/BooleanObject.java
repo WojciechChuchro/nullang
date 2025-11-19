@@ -1,14 +1,7 @@
 
 package com.nullang.nullangobject;
 
-public class BooleanType implements NullangObject{
-    private final boolean value;
-    
-
-    public BooleanType(boolean value) {
-        this.value = value;
-    }
-
+public record BooleanObject(boolean value) implements NullangObject{
     @Override
     public ObjectType type() {
         return ObjectType.BOOLEAN_OBJ;
@@ -18,6 +11,4 @@ public class BooleanType implements NullangObject{
     public String inspect() {
         return String.valueOf(value);
     }
-
-    
 }

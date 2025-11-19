@@ -2,7 +2,6 @@ package com.nullang.ast.statement;
 
 import com.nullang.ast.Expression;
 import com.nullang.ast.Node;
-import com.nullang.ast.Statement;
 import com.nullang.token.Token;
 
 public class ExpressionStatement implements Statement{

@@ -1,14 +1,13 @@
 package com.nullang.ast.expression;
 
 import com.nullang.ast.Expression;
-import com.nullang.ast.Identifier;
 import com.nullang.ast.Node;
 import com.nullang.token.Token;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-public final class CallExpression implements Expression {
+public class CallExpression implements Expression {
     private final Token token;
     private final Expression function;
     private final List<Expression> arguments;

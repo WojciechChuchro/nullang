@@ -9,7 +9,7 @@ import com.nullang.ast.Identifier;
 import com.nullang.ast.Node;
 import com.nullang.token.Token;
 
-public final class FnStatement implements Expression {
+public class FnStatement implements Expression {
     private final Token token;
     private final List<Identifier> parameters;
     private final BlockStatement body;
@@ -36,7 +36,7 @@ public final class FnStatement implements Expression {
     public String toString() {
         StringBuilder builder = new StringBuilder();
 
-        builder.append(token.literal);
+        builder.append(token.literal());
         builder.append("(");
         builder.append(parameters.stream().map(Object::toString).collect(Collectors.joining(", ")));
         builder.append(") {");

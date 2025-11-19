@@ -8,7 +8,7 @@ import com.nullang.ast.Node;
 import com.nullang.ast.statement.BlockStatement;
 import com.nullang.token.Token;
 
-public final class IfExpression implements Expression{
+public class IfExpression implements Expression{
     private final Token token;
     private final Expression condition;
     private final BlockStatement consequence;
@@ -51,7 +51,7 @@ public final class IfExpression implements Expression{
 
     @Override
     public String tokenLiteral() {
-        return token.literal;
+        return token.literal();
     }
 
     @Override

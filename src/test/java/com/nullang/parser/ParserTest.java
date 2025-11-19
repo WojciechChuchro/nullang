@@ -14,11 +14,10 @@ import java.io.StringReader;
 import org.junit.jupiter.api.Test;
 
 import com.nullang.ast.BooleanIdentifier;
-import com.nullang.ast.Expression;
 import com.nullang.ast.Identifier;
 import com.nullang.ast.IntegerIdentifier;
 import com.nullang.ast.Program;
-import com.nullang.ast.Statement;
+import com.nullang.ast.statement.Statement;
 import com.nullang.ast.expression.CallExpression;
 import com.nullang.ast.expression.IfExpression;
 import com.nullang.ast.expression.InfixExpression;
@@ -31,6 +30,8 @@ import com.nullang.ast.statement.ReturnStatement;
 import com.nullang.lexer.Lexer;
 import com.nullang.parser.errors.ParserException;
 import com.nullang.token.TokenType;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 public class ParserTest {
     private Program parseInput(String input) throws IOException {
@@ -41,7 +42,7 @@ public class ParserTest {
         }
     }
 
-    private ParserException parseInputExpectingException(String input) throws IOException {
+    private ParserException parseInputExpectingException(String input) {
         Reader reader = new StringReader(input);
         try (Lexer lexer = new Lexer(reader);
                 Parser parser = new Parser(lexer)) {
@@ -92,7 +93,7 @@ public class ParserTest {
         String[] expectedIdentifiers = {"x", "y", "foobar"};
         for (int i = 0; i < expectedIdentifiers.length; i++) {
             Statement stmt = program.statements.get(i);
-            assertTrue(stmt instanceof LetStatement, "Statement " + i + " should be LetStatement");
+            assertInstanceOf(LetStatement.class, stmt, "Statement " + i + " should be LetStatement");
             assertEquals("let", stmt.tokenLiteral());
         }
     }
@@ -109,7 +110,7 @@ public class ParserTest {
         assertNotNull(program);
         assertEquals(2, program.statements.size());
 
-        assertTrue(program.statements.get(0) instanceof ReturnStatement);
+        assertInstanceOf(ReturnStatement.class, program.statements.get(0));
         ReturnStatement rs =(ReturnStatement) program.statements.get(0);
         ReturnStatement exp = (ReturnStatement) rs;
 
@@ -493,8 +494,8 @@ public class ParserTest {
 
         assertThat(expressionStatement.getExpression()).isInstanceOf(FnStatement.class);
         FnStatement fnStatement = (FnStatement) expressionStatement.getExpression();
-        assertThat(fnStatement.getToken().type).isEqualTo(TokenType.FUNCTION);
-        assertThat(fnStatement.getToken().literal).isEqualTo("fn");
+        assertThat(fnStatement.getToken().type()).isEqualTo(TokenType.FUNCTION);
+        assertThat(fnStatement.getToken().literal()).isEqualTo("fn");
         assertThat(fnStatement.getBody()).isInstanceOf(BlockStatement.class);
         assertThat(fnStatement.getBody().toString()).isEqualTo("(x + y)");
 
@@ -521,8 +522,8 @@ public class ParserTest {
 
         assertThat(expressionStatement.getExpression()).isInstanceOf(FnStatement.class);
         FnStatement fnStatement = (FnStatement) expressionStatement.getExpression();
-        assertThat(fnStatement.getToken().type).isEqualTo(TokenType.FUNCTION);
-        assertThat(fnStatement.getToken().literal).isEqualTo("fn");
+        assertThat(fnStatement.getToken().type()).isEqualTo(TokenType.FUNCTION);
+        assertThat(fnStatement.getToken().literal()).isEqualTo("fn");
         assertThat(fnStatement.getBody()).isInstanceOf(BlockStatement.class);
         assertThat(fnStatement.getBody().toString()).isEqualTo("(1 + 2)");
         assertThat(fnStatement.toString()).isEqualTo("fn() {(1 + 2)}");
@@ -579,5 +580,26 @@ public class ParserTest {
         assertThat(callExpression.getArguments().get(1).toString()).isEqualTo("3");
 
         assertThat(callExpression.getArguments()).hasSize(2);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "let x = 5;, x, 5",
+            "let y = 10;, y, 10",
+            "let foobar = 838383;, foobar, 838383"
+    })
+    void testLetStatementsParameterized(String input, String expectedIdentifier, int expectedValue) throws IOException {
+        Program program = parseInput(input);
+
+        assertThat(program).isNotNull();
+        assertThat(program.statements).hasSize(1);
+
+        Statement stmt = program.statements.getFirst();
+        assertThat(stmt).isInstanceOf(LetStatement.class);
+
+        LetStatement letStmt = (LetStatement) stmt;
+        assertThat(letStmt.getName().toString()).isEqualTo(expectedIdentifier);
+        assertThat(letStmt.getValue()).isInstanceOf(IntegerIdentifier.class);
+        assertThat(((IntegerIdentifier) letStmt.getValue()).getValue()).isEqualTo(expectedValue);
     }
 }

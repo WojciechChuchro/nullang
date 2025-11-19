@@ -2,54 +2,41 @@ package com.nullang.lexer;
 
 import com.nullang.token.Token;
 import com.nullang.token.TokenType;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 
 import java.io.IOException;
 import java.io.Reader;
-import java.util.HashMap;
 import java.util.Map;
 
 public class Lexer implements AutoCloseable {
+    private final Logger log = LoggerFactory.getLogger(Lexer.class);
     private final Reader reader;
     private int currentChar;
-    private int peekedChar = -2;
-    private static final Map<String, TokenType> keywords = new HashMap<>();
+    private int peekedChar;
+    private static final Map<String, TokenType> keywords = Map.of(
+            "fn", TokenType.FUNCTION,
+            "let", TokenType.LET,
+            "if", TokenType.IF,
+            "else", TokenType.ELSE,
+            "return", TokenType.RETURN,
+            "true", TokenType.TRUE,
+            "false", TokenType.FALSE
+    );
 
-    static {
-        keywords.put("fn", TokenType.FUNCTION);
-        keywords.put("let", TokenType.LET);
-        keywords.put("if", TokenType.IF);
-        keywords.put("else", TokenType.ELSE);
-        keywords.put("return", TokenType.RETURN);
-        keywords.put("true", TokenType.TRUE);
-        keywords.put("false", TokenType.FALSE);
-    }
 
-    public Lexer(Reader reader) throws IOException {
+    public Lexer(Reader reader) {
         this.reader = reader;
-        this.currentChar = reader.read();
-    }
-
-    public boolean hasNext() {
-        return currentChar != -1;
-    }
-
-    private void skipWhitespace() throws IOException {
-        while (Character.isWhitespace(currentChar)) {
-            readChar();
+        try {
+            this.currentChar = reader.read();
+            this.peekedChar = reader.read();
+        } catch (IOException e) {
+            log.error("Exception while creating Lexer object {}", e.getMessage(), e);
         }
     }
 
-    public void readChar() throws IOException {
-        if (peekedChar == -2) {
-            currentChar = reader.read();
-        } else {
-            currentChar = peekedChar;
-            peekedChar = -2;
-        }
-    }
-
-    public Token nextToken() throws IOException {
+    public Token nextToken() {
         skipWhitespace();
 
         Token token;
@@ -80,7 +67,7 @@ public class Lexer implements AutoCloseable {
                 token = new Token(TokenType.COMMA, ",");
                 break;
             case '=':
-                if (peekChar() == '=') {
+                if (peekedChar == '=') {
                     readChar();
                     token = new Token(TokenType.EQ, "==");
                     break;
@@ -88,7 +75,7 @@ public class Lexer implements AutoCloseable {
                 token = new Token(TokenType.ASSIGN, "=");
                 break;
             case '!':
-                if (peekChar() == '=') {
+                if (peekedChar == '=') {
                     readChar();
                     token = new Token(TokenType.NOT_EQ, "!=");
                     break;
@@ -110,10 +97,10 @@ public class Lexer implements AutoCloseable {
             case -1:
                 return new Token(TokenType.EOF, "");
             default:
-                if (isLetter()) {
+                if (isLetterOrUnderscore((char) currentChar)) {
                     String identifier = readIdentifier();
                     return lockupIdentifier(identifier);
-                } else if (isDigit()) {
+                } else if (Character.isDigit(currentChar)) {
                     String number = readNumber();
                     return new Token(TokenType.INT, number);
                 }
@@ -126,33 +113,35 @@ public class Lexer implements AutoCloseable {
         return token;
     }
 
-    private String readIdentifier() throws IOException {
-        StringBuilder sb = new StringBuilder();
-
-        while (isLetter()) {
-            sb.append((char) currentChar);
-            readChar();
-        }
-
-        return sb.toString();
-    }
-
-    private String readNumber() throws IOException {
-        StringBuilder sb = new StringBuilder();
-
-        while (isDigit()) {
-            sb.append((char) currentChar);
-            readChar();
-        }
-
-        return sb.toString();
-    }
-
-    private int peekChar() throws IOException {
-        if (peekedChar == -2) {
+    private void readChar() {
+        try {
+            currentChar = peekedChar;
             peekedChar = reader.read();
+        } catch (IOException e) {
+            log.error("Exception while reading character {}", e.getMessage(), e);
         }
-        return peekedChar;
+    }
+
+    private String readIdentifier() {
+        StringBuilder sb = new StringBuilder();
+
+        while (isLetterOrUnderscore((char) currentChar)) {
+            sb.append((char) currentChar);
+            readChar();
+        }
+
+        return sb.toString();
+    }
+
+    private String readNumber() {
+        StringBuilder sb = new StringBuilder();
+
+        while (Character.isDigit(currentChar)) {
+            sb.append((char) currentChar);
+            readChar();
+        }
+
+        return sb.toString();
     }
 
     private Token lockupIdentifier(String identifier) {
@@ -160,18 +149,22 @@ public class Lexer implements AutoCloseable {
         return new Token(type, identifier);
     }
 
-    private boolean isLetter() {
-        return 'a' <= currentChar && currentChar <= 'z'
-                || 'A' <= currentChar && currentChar <= 'Z'
-                || currentChar == '_';
+    private static boolean isLetterOrUnderscore(char c) {
+        return Character.isLetter(c) || c == '_';
     }
 
-    private boolean isDigit() {
-        return '0' <= currentChar && currentChar <= '9';
+    private void skipWhitespace() {
+        while (Character.isWhitespace(currentChar)) {
+            readChar();
+        }
     }
 
     @Override
-    public void close() throws IOException {
-        reader.close();
+    public void close() {
+        try {
+            reader.close();
+        } catch (IOException e) {
+            log.error("Exception while closing reader {}", e.getMessage(), e);
+        }
     }
 }

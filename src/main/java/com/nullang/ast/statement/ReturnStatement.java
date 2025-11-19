@@ -3,7 +3,6 @@ package com.nullang.ast.statement;
 
 import com.nullang.ast.Expression;
 import com.nullang.ast.Node;
-import com.nullang.ast.Statement;
 import com.nullang.token.Token;
 
 public class ReturnStatement implements Statement{
@@ -35,7 +34,7 @@ public class ReturnStatement implements Statement{
 
     @Override
     public String tokenLiteral() {
-        return token.literal;
+        return token.literal();
     }
 
     @Override
