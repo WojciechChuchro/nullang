@@ -152,8 +152,8 @@ public class ParserTest {
 
         ExpressionStatement exprStmt = (ExpressionStatement) stmt;
         assertEquals("foobar", exprStmt.tokenLiteral());
-        assertTrue(exprStmt.getExpression() instanceof Identifier);
-        assertEquals("foobar", ((Identifier) exprStmt.getExpression()).getValue());
+        assertTrue(exprStmt.expression() instanceof Identifier);
+        assertEquals("foobar", ((Identifier) exprStmt.expression()).getValue());
     }
 
     @Test
@@ -167,9 +167,9 @@ public class ParserTest {
         assertTrue(stmt instanceof ExpressionStatement);
 
         ExpressionStatement exprStmt = (ExpressionStatement) stmt;
-        assertTrue(exprStmt.getExpression() instanceof IntegerIdentifier);
+        assertTrue(exprStmt.expression() instanceof IntegerIdentifier);
         assertEquals("5", exprStmt.tokenLiteral());
-        assertEquals(5, ((IntegerIdentifier) exprStmt.getExpression()).getValue());
+        assertEquals(5, ((IntegerIdentifier) exprStmt.expression()).getValue());
     }
 
     @Test
@@ -188,13 +188,13 @@ public class ParserTest {
         Statement stmt1 = program.statements.get(0);
         assertTrue(stmt1 instanceof ExpressionStatement);
         ExpressionStatement exprStmt1 = (ExpressionStatement) stmt1;
-        assertEquals("foobar", ((Identifier) exprStmt1.getExpression()).getValue());
+        assertEquals("foobar", ((Identifier) exprStmt1.expression()).getValue());
 
         // Test integer expression
         Statement stmt2 = program.statements.get(1);
         assertTrue(stmt2 instanceof ExpressionStatement);
         ExpressionStatement exprStmt2 = (ExpressionStatement) stmt2;
-        assertEquals(5, ((IntegerIdentifier) exprStmt2.getExpression()).getValue());
+        assertEquals(5, ((IntegerIdentifier) exprStmt2.expression()).getValue());
     }
 
     @Test
@@ -208,9 +208,9 @@ public class ParserTest {
         assertTrue(stmt instanceof ExpressionStatement);
 
         ExpressionStatement exprStmt = (ExpressionStatement) stmt;
-        assertTrue(exprStmt.getExpression() instanceof PrefixExpression);
+        assertTrue(exprStmt.expression() instanceof PrefixExpression);
 
-        PrefixExpression prefixExpr = (PrefixExpression) exprStmt.getExpression();
+        PrefixExpression prefixExpr = (PrefixExpression) exprStmt.expression();
         assertEquals("!", prefixExpr.getOperator());
         assertEquals("!", prefixExpr.tokenLiteral());
 
@@ -233,9 +233,9 @@ public class ParserTest {
         assertTrue(stmt instanceof ExpressionStatement);
 
         ExpressionStatement exprStmt = (ExpressionStatement) stmt;
-        assertTrue(exprStmt.getExpression() instanceof PrefixExpression);
+        assertTrue(exprStmt.expression() instanceof PrefixExpression);
 
-        PrefixExpression prefixExpr = (PrefixExpression) exprStmt.getExpression();
+        PrefixExpression prefixExpr = (PrefixExpression) exprStmt.expression();
         assertEquals("-", prefixExpr.getOperator());
 
         assertTrue(prefixExpr.getRight() instanceof IntegerIdentifier);
@@ -256,12 +256,12 @@ public class ParserTest {
 
         // Test bang prefix
         ExpressionStatement stmt1 = (ExpressionStatement) program.statements.get(0);
-        PrefixExpression prefix1 = (PrefixExpression) stmt1.getExpression();
+        PrefixExpression prefix1 = (PrefixExpression) stmt1.expression();
         assertEquals("!", prefix1.getOperator());
 
         // Test minus prefix
         ExpressionStatement stmt2 = (ExpressionStatement) program.statements.get(1);
-        PrefixExpression prefix2 = (PrefixExpression) stmt2.getExpression();
+        PrefixExpression prefix2 = (PrefixExpression) stmt2.expression();
         assertEquals("-", prefix2.getOperator());
     }
 
@@ -273,7 +273,7 @@ public class ParserTest {
         assertEquals(1, program.statements.size());
 
         ExpressionStatement exprStmt = (ExpressionStatement) program.statements.get(0);
-        PrefixExpression prefixExpr = (PrefixExpression) exprStmt.getExpression();
+        PrefixExpression prefixExpr = (PrefixExpression) exprStmt.expression();
 
         assertEquals(expectedOperator, prefixExpr.getOperator());
         IntegerIdentifier right = (IntegerIdentifier) prefixExpr.getRight();
@@ -305,13 +305,13 @@ public class ParserTest {
         assertEquals(8, program.statements.size());
 
         ExpressionStatement stmt1 = (ExpressionStatement) program.statements.get(0);
-        InfixExpression infix1 = (InfixExpression) stmt1.getExpression();
+        InfixExpression infix1 = (InfixExpression) stmt1.expression();
         assertEquals("5", infix1.getLeft().tokenLiteral());
         assertEquals("+", infix1.getOperator());
         assertEquals("4", infix1.getRight().tokenLiteral());
 
         ExpressionStatement stmt2 = (ExpressionStatement) program.statements.get(1);
-        InfixExpression infix2 = (InfixExpression) stmt2.getExpression();
+        InfixExpression infix2 = (InfixExpression) stmt2.expression();
         assertEquals("6", infix2.getLeft().tokenLiteral());
         assertEquals("-", infix2.getOperator());
         assertEquals("5", infix2.getRight().tokenLiteral());
@@ -344,8 +344,8 @@ public class ParserTest {
         System.out.println(program.statements);
         ExpressionStatement stmt =
                 assertInstanceOf(ExpressionStatement.class, program.statements.get(0));
-        assertInstanceOf(BooleanIdentifier.class, stmt.getExpression());
-        BooleanIdentifier booleanIdentifier = (BooleanIdentifier) stmt.getExpression();
+        assertInstanceOf(BooleanIdentifier.class, stmt.expression());
+        BooleanIdentifier booleanIdentifier = (BooleanIdentifier) stmt.expression();
         testBooleanLiteral(booleanIdentifier, true);
     }
 
@@ -363,9 +363,9 @@ public class ParserTest {
                 .allSatisfy(stmt -> assertThat(stmt).isInstanceOf(ExpressionStatement.class));
         ExpressionStatement stmt = (ExpressionStatement) program.statements.get(0);
 
-        assertThat(stmt.getExpression()).isInstanceOf(PrefixExpression.class);
+        assertThat(stmt.expression()).isInstanceOf(PrefixExpression.class);
 
-        PrefixExpression prefixExpression = (PrefixExpression) stmt.getExpression();
+        PrefixExpression prefixExpression = (PrefixExpression) stmt.expression();
         assertThat(prefixExpression.getRight()).isInstanceOf(BooleanIdentifier.class);
         assertThat(prefixExpression.getOperator()).isEqualTo("!");
 
@@ -386,9 +386,9 @@ public class ParserTest {
                 .allSatisfy(stmt -> assertThat(stmt).isInstanceOf(ExpressionStatement.class));
         ExpressionStatement stmt = (ExpressionStatement) program.statements.get(0);
 
-        assertThat(stmt.getExpression()).isInstanceOf(InfixExpression.class);
+        assertThat(stmt.expression()).isInstanceOf(InfixExpression.class);
 
-        InfixExpression prefixExpression = (InfixExpression) stmt.getExpression();
+        InfixExpression prefixExpression = (InfixExpression) stmt.expression();
         assertThat(prefixExpression.getRight()).isInstanceOf(BooleanIdentifier.class);
         assertThat(prefixExpression.getLeft()).isInstanceOf(BooleanIdentifier.class);
         assertThat(prefixExpression.getOperator()).isEqualTo("==");
@@ -426,8 +426,8 @@ public class ParserTest {
                 .allSatisfy(stmt -> assertThat(stmt).isInstanceOf(ExpressionStatement.class));
         ExpressionStatement expressionStatement = (ExpressionStatement) program.statements.get(0);
 
-        assertThat(expressionStatement.getExpression()).isInstanceOf(IfExpression.class);
-        IfExpression ifExp = (IfExpression) expressionStatement.getExpression();
+        assertThat(expressionStatement.expression()).isInstanceOf(IfExpression.class);
+        IfExpression ifExp = (IfExpression) expressionStatement.expression();
         assertThat(ifExp.getCondition()).isInstanceOf(InfixExpression.class);
         assertThat(ifExp.getCondition().toString()).isEqualTo("(x < y)");
         assertThat(ifExp.getConsequence().statementsSize()).isEqualTo(1);
@@ -456,8 +456,8 @@ public class ParserTest {
                 .allSatisfy(stmt -> assertThat(stmt).isInstanceOf(ExpressionStatement.class));
         ExpressionStatement expressionStatement = (ExpressionStatement) program.statements.get(0);
 
-        assertThat(expressionStatement.getExpression()).isInstanceOf(IfExpression.class);
-        IfExpression ifExp = (IfExpression) expressionStatement.getExpression();
+        assertThat(expressionStatement.expression()).isInstanceOf(IfExpression.class);
+        IfExpression ifExp = (IfExpression) expressionStatement.expression();
         assertThat(ifExp.getCondition()).isInstanceOf(InfixExpression.class);
         assertThat(ifExp.getCondition().toString()).isEqualTo("(x < y)");
         assertThat(ifExp.getConsequence().statementsSize()).isEqualTo(1);
@@ -492,8 +492,8 @@ public class ParserTest {
                 .allSatisfy(stmt -> assertThat(stmt).isInstanceOf(ExpressionStatement.class));
         ExpressionStatement expressionStatement = (ExpressionStatement) program.statements.get(0);
 
-        assertThat(expressionStatement.getExpression()).isInstanceOf(FnStatement.class);
-        FnStatement fnStatement = (FnStatement) expressionStatement.getExpression();
+        assertThat(expressionStatement.expression()).isInstanceOf(FnStatement.class);
+        FnStatement fnStatement = (FnStatement) expressionStatement.expression();
         assertThat(fnStatement.getToken().type()).isEqualTo(TokenType.FUNCTION);
         assertThat(fnStatement.getToken().literal()).isEqualTo("fn");
         assertThat(fnStatement.getBody()).isInstanceOf(BlockStatement.class);
@@ -520,8 +520,8 @@ public class ParserTest {
                 .allSatisfy(stmt -> assertThat(stmt).isInstanceOf(ExpressionStatement.class));
         ExpressionStatement expressionStatement = (ExpressionStatement) program.statements.get(0);
 
-        assertThat(expressionStatement.getExpression()).isInstanceOf(FnStatement.class);
-        FnStatement fnStatement = (FnStatement) expressionStatement.getExpression();
+        assertThat(expressionStatement.expression()).isInstanceOf(FnStatement.class);
+        FnStatement fnStatement = (FnStatement) expressionStatement.expression();
         assertThat(fnStatement.getToken().type()).isEqualTo(TokenType.FUNCTION);
         assertThat(fnStatement.getToken().literal()).isEqualTo("fn");
         assertThat(fnStatement.getBody()).isInstanceOf(BlockStatement.class);
@@ -544,9 +544,9 @@ public class ParserTest {
                 .hasSize(1)
                 .allSatisfy(stmt -> assertThat(stmt).isInstanceOf(ExpressionStatement.class));
         ExpressionStatement expressionStatement = (ExpressionStatement) program.statements.get(0);
-        assertThat(expressionStatement.getExpression()).isInstanceOf(CallExpression.class);
+        assertThat(expressionStatement.expression()).isInstanceOf(CallExpression.class);
 
-        CallExpression callExpression = (CallExpression) expressionStatement.getExpression();
+        CallExpression callExpression = (CallExpression) expressionStatement.expression();
         assertThat(callExpression.getFunction().toString()).isEqualTo("add");
         assertThat(callExpression.getFunction()).isInstanceOf(Identifier.class);
         assertThat(callExpression.toString()).isEqualTo("add(1, (2 * 3), (4 + 5))");
@@ -570,9 +570,9 @@ public class ParserTest {
                 .hasSize(1)
                 .allSatisfy(stmt -> assertThat(stmt).isInstanceOf(ExpressionStatement.class));
         ExpressionStatement expressionStatement = (ExpressionStatement) program.statements.get(0);
-        assertThat(expressionStatement.getExpression()).isInstanceOf(CallExpression.class);
+        assertThat(expressionStatement.expression()).isInstanceOf(CallExpression.class);
 
-        CallExpression callExpression = (CallExpression) expressionStatement.getExpression();
+        CallExpression callExpression = (CallExpression) expressionStatement.expression();
         assertThat(callExpression.getFunction().toString()).isEqualTo("fn(x, y) {(x + y)}");
         assertThat(callExpression.getFunction()).isInstanceOf(FnStatement.class);
         assertThat(callExpression.toString()).isEqualTo("fn(x, y) {(x + y)}(2, 3)");

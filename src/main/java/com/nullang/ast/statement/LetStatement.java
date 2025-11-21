@@ -39,9 +39,4 @@ public class LetStatement implements Statement {
     public String tokenLiteral() {
         return token.literal();
     }
-
-    @Override
-    public Node StatementNode() {
-        return this;
-    }
 }

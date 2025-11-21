@@ -6,7 +6,6 @@ import com.nullang.ast.*;
 import com.nullang.ast.expression.PrefixExpression;
 import com.nullang.ast.statement.ExpressionStatement;
 import com.nullang.nullangobject.*;
-import org.slf4j.helpers.NOP_FallbackServiceProvider;
 
 public class Eval {
     private final static NullangObject NULL = new NullObject();
@@ -15,10 +14,10 @@ public class Eval {
 
     public NullangObject evaluate(Node node) {
         return switch (node) {
-            case Program p ->
-                    evalStatements(p.statements);
+            case Program program ->
+                    evalStatements(program.statements);
             case ExpressionStatement exp ->
-                    evaluate(exp.getExpression());
+                    evaluate(exp.expression());
             case IntegerIdentifier intNode ->
                     new IntegerObject(intNode.getValue());
             case BooleanIdentifier booleanNode ->

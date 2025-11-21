@@ -35,17 +35,8 @@ public class BlockStatement implements Statement {
         return builder.toString();
     }
 
-
-
     @Override
     public String tokenLiteral() {
         return token.literal();
     }
-
-    @Override
-    public Node StatementNode() {
-        return this;
-    }
-
-    
 }

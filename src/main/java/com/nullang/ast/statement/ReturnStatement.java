@@ -9,7 +9,6 @@ public class ReturnStatement implements Statement{
     private final Token token;
     private Expression returnValue;
     
-
     public Token getToken() {
         return token;
     }
@@ -24,12 +23,6 @@ public class ReturnStatement implements Statement{
 
     public ReturnStatement(Token token) {
         this.token = token;
-    }
-
-    @Override
-    public Node StatementNode() {
-        // TODO Auto-generated method stub
-        return null;
     }
 
     @Override
