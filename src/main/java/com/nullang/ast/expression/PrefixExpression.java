@@ -1,17 +1,12 @@
 package com.nullang.ast.expression;
 
 import com.nullang.ast.Expression;
-import com.nullang.ast.Node;
 import com.nullang.token.Token;
 
-public class PrefixExpression implements Expression{
+public class PrefixExpression implements Expression {
     private final Token token;
     private final String operator;
     private Expression right;
-
-    public void setRight(Expression right) {
-        this.right = right;
-    }
 
     public PrefixExpression(Token token, String operator) {
         this.token = token;
@@ -30,21 +25,17 @@ public class PrefixExpression implements Expression{
         return right;
     }
 
+    public void setRight(Expression right) {
+        this.right = right;
+    }
+
     @Override
     public String toString() {
         return operator + right;
     }
 
     @Override
-    public String tokenLiteral() {
+    public String getTokenLiteral() {
         return token.literal();
     }
-
-    @Override
-    public Node expressionNode() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'expressionNode'");
-    }
-
-    
 }

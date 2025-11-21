@@ -51,9 +51,9 @@ public class ParserTest {
     }
 
     private void testBooleanLiteral(BooleanIdentifier booleanLiteral, boolean value) {
-        System.out.println(booleanLiteral.tokenLiteral());
+        System.out.println(booleanLiteral.getTokenLiteral());
         assertThat(booleanLiteral.value).isEqualTo(value);
-        assertThat(booleanLiteral.tokenLiteral()).isEqualTo(String.valueOf(value));
+        assertThat(booleanLiteral.getTokenLiteral()).isEqualTo(String.valueOf(value));
     }
 
     @Test
@@ -69,7 +69,7 @@ public class ParserTest {
 
         Statement stmt = program.statements.get(0);
         assertTrue(stmt instanceof LetStatement, "Statement " + 0 + " should be LetStatement");
-        assertEquals("let", stmt.tokenLiteral());
+        assertEquals("let", stmt.getTokenLiteral());
 
         LetStatement ls = (LetStatement) stmt;
         assertThat(ls.getName().toString()).isEqualTo("x");
@@ -94,7 +94,7 @@ public class ParserTest {
         for (int i = 0; i < expectedIdentifiers.length; i++) {
             Statement stmt = program.statements.get(i);
             assertInstanceOf(LetStatement.class, stmt, "Statement " + i + " should be LetStatement");
-            assertEquals("let", stmt.tokenLiteral());
+            assertEquals("let", stmt.getTokenLiteral());
         }
     }
 
@@ -151,7 +151,7 @@ public class ParserTest {
         assertTrue(stmt instanceof ExpressionStatement);
 
         ExpressionStatement exprStmt = (ExpressionStatement) stmt;
-        assertEquals("foobar", exprStmt.tokenLiteral());
+        assertEquals("foobar", exprStmt.getTokenLiteral());
         assertTrue(exprStmt.expression() instanceof Identifier);
         assertEquals("foobar", ((Identifier) exprStmt.expression()).getValue());
     }
@@ -168,7 +168,7 @@ public class ParserTest {
 
         ExpressionStatement exprStmt = (ExpressionStatement) stmt;
         assertTrue(exprStmt.expression() instanceof IntegerIdentifier);
-        assertEquals("5", exprStmt.tokenLiteral());
+        assertEquals("5", exprStmt.getTokenLiteral());
         assertEquals(5, ((IntegerIdentifier) exprStmt.expression()).getValue());
     }
 
@@ -212,14 +212,14 @@ public class ParserTest {
 
         PrefixExpression prefixExpr = (PrefixExpression) exprStmt.expression();
         assertEquals("!", prefixExpr.getOperator());
-        assertEquals("!", prefixExpr.tokenLiteral());
+        assertEquals("!", prefixExpr.getTokenLiteral());
 
         assertNotNull(prefixExpr.getRight());
         assertTrue(prefixExpr.getRight() instanceof IntegerIdentifier);
 
         IntegerIdentifier right = (IntegerIdentifier) prefixExpr.getRight();
         assertEquals(5, right.getValue());
-        assertEquals("5", right.tokenLiteral());
+        assertEquals("5", right.getTokenLiteral());
     }
 
     @Test
@@ -306,15 +306,15 @@ public class ParserTest {
 
         ExpressionStatement stmt1 = (ExpressionStatement) program.statements.get(0);
         InfixExpression infix1 = (InfixExpression) stmt1.expression();
-        assertEquals("5", infix1.getLeft().tokenLiteral());
+        assertEquals("5", infix1.getLeft().getTokenLiteral());
         assertEquals("+", infix1.getOperator());
-        assertEquals("4", infix1.getRight().tokenLiteral());
+        assertEquals("4", infix1.getRight().getTokenLiteral());
 
         ExpressionStatement stmt2 = (ExpressionStatement) program.statements.get(1);
         InfixExpression infix2 = (InfixExpression) stmt2.expression();
-        assertEquals("6", infix2.getLeft().tokenLiteral());
+        assertEquals("6", infix2.getLeft().getTokenLiteral());
         assertEquals("-", infix2.getOperator());
-        assertEquals("5", infix2.getRight().tokenLiteral());
+        assertEquals("5", infix2.getRight().getTokenLiteral());
     }
 
     @Test

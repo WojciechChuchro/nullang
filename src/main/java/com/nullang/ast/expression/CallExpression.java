@@ -1,7 +1,6 @@
 package com.nullang.ast.expression;
 
 import com.nullang.ast.Expression;
-import com.nullang.ast.Node;
 import com.nullang.token.Token;
 
 import java.util.List;
@@ -31,15 +30,9 @@ public class CallExpression implements Expression {
     }
 
     @Override
-    public String tokenLiteral() {
+    public String getTokenLiteral() {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'tokenLiteral'");
-    }
-
-    @Override
-    public Node expressionNode() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'expressionNode'");
     }
 
     public Token getToken() {

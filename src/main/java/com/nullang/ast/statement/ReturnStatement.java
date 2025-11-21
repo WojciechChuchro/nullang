@@ -2,13 +2,16 @@ package com.nullang.ast.statement;
 
 
 import com.nullang.ast.Expression;
-import com.nullang.ast.Node;
 import com.nullang.token.Token;
 
-public class ReturnStatement implements Statement{
+public class ReturnStatement implements Statement {
     private final Token token;
     private Expression returnValue;
-    
+
+    public ReturnStatement(Token token) {
+        this.token = token;
+    }
+
     public Token getToken() {
         return token;
     }
@@ -21,12 +24,8 @@ public class ReturnStatement implements Statement{
         this.returnValue = returnValue;
     }
 
-    public ReturnStatement(Token token) {
-        this.token = token;
-    }
-
     @Override
-    public String tokenLiteral() {
+    public String getTokenLiteral() {
         return token.literal();
     }
 

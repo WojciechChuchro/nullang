@@ -12,7 +12,7 @@ public class BooleanIdentifier implements Expression{
     }
 
     @Override
-    public String tokenLiteral() {
+    public String getTokenLiteral() {
         return token.toString();
     }
 
@@ -20,12 +20,4 @@ public class BooleanIdentifier implements Expression{
     public String toString() {
         return String.valueOf(value);
     }
-
-    @Override
-    public Node expressionNode() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'expressionNode'");
-    }
-
-    
 }

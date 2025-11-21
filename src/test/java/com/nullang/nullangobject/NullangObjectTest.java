@@ -1,13 +1,9 @@
 package com.nullang.nullangobject;
 
-import com.nullang.ast.expression.PrefixExpression;
-import com.nullang.ast.statement.ExpressionStatement;
 import com.nullang.ast.statement.Statement;
 import com.nullang.eval.Eval;
 import com.nullang.lexer.Lexer;
 import com.nullang.parser.Parser;
-import com.nullang.token.Token;
-import com.nullang.token.TokenType;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
