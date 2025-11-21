@@ -27,6 +27,8 @@ public class NullangApplication {
             var res = eval.evaluate(program);
             System.out.println("Evaluated: " + res.inspect());
         }
+
+        sc.close();
     }
 
     public static Program parseInput(String input) throws IOException {

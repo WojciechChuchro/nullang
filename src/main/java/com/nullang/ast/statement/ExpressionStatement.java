@@ -1,7 +1,6 @@
 package com.nullang.ast.statement;
 
 import com.nullang.ast.Expression;
-import com.nullang.ast.Node;
 import com.nullang.token.Token;
 
 public record ExpressionStatement(
@@ -14,7 +13,7 @@ public record ExpressionStatement(
     }
 
     @Override
-    public String tokenLiteral() {
-        return expression.tokenLiteral();
+    public String getTokenLiteral() {
+        return expression.getTokenLiteral();
     }
 }

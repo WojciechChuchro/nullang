@@ -4,7 +4,7 @@ package com.nullang.nullangobject;
 public record IntegerObject(int value) implements NullangObject {
     @Override
     public ObjectType type() {
-        return ObjectType.INTEGER_OBJ;
+        return ObjectType.INTEGER;
     }
 
     @Override

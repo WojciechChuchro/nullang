@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 
 import com.nullang.ast.Expression;
 import com.nullang.ast.Identifier;
-import com.nullang.ast.Node;
 import com.nullang.token.Token;
 
 public class FnStatement implements Expression {
@@ -47,15 +46,7 @@ public class FnStatement implements Expression {
     }
 
     @Override
-    public String tokenLiteral() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'tokenLiteral'");
+    public String getTokenLiteral() {
+        return token.literal();
     }
-
-    @Override
-    public Node expressionNode() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'expressionNode'");
-    }
-
 }

@@ -10,7 +10,7 @@ public class Program implements Node {
     public final List<Statement> statements = new ArrayList<>();
 
     @Override
-    public String tokenLiteral() {
+    public String getTokenLiteral() {
         return "";
     }
 

@@ -4,7 +4,6 @@ package com.nullang.ast.expression;
 import java.util.Optional;
 
 import com.nullang.ast.Expression;
-import com.nullang.ast.Node;
 import com.nullang.ast.statement.BlockStatement;
 import com.nullang.token.Token;
 
@@ -50,15 +49,7 @@ public class IfExpression implements Expression{
     }
 
     @Override
-    public String tokenLiteral() {
+    public String getTokenLiteral() {
         return token.literal();
     }
-
-    @Override
-    public Node expressionNode() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'expressionNode'");
-    }
-
-    
 }

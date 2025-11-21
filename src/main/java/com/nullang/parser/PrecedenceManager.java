@@ -15,7 +15,8 @@ public class PrecedenceManager {
                     TokenType.MINUS, Precedences.SUM,
                     TokenType.SLASH, Precedences.PRODUCT,
                     TokenType.LPAREN, Precedences.CALL,
-                    TokenType.ASTERISK, Precedences.PRODUCT);
+                    TokenType.ASTERISK, Precedences.PRODUCT
+            );
 
     public static int getPrecedence(TokenType type) {
         return PRECEDENCES.getOrDefault(type, Precedences.LOWEST);

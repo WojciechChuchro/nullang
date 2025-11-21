@@ -4,7 +4,6 @@ package com.nullang.ast.statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.nullang.ast.Node;
 import com.nullang.token.Token;
 
 public class BlockStatement implements Statement {
@@ -22,6 +21,10 @@ public class BlockStatement implements Statement {
     public Statement getStatement(int index) {
         return statements.get(index);
     }
+
+    public List<Statement>  getStatements() {
+        return statements;
+    }
     public int statementsSize() {
         return statements.size();
     }
@@ -36,7 +39,7 @@ public class BlockStatement implements Statement {
     }
 
     @Override
-    public String tokenLiteral() {
+    public String getTokenLiteral() {
         return token.literal();
     }
 }

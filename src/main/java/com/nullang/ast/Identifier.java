@@ -3,7 +3,6 @@ package com.nullang.ast;
 import com.nullang.token.Token;
 
 public class Identifier implements Expression {
-
     private final Token token;
     private final String value;
 
@@ -17,13 +16,8 @@ public class Identifier implements Expression {
     }
 
     @Override
-    public String tokenLiteral() {
+    public String getTokenLiteral() {
         return token.literal();
-    }
-
-    @Override
-    public Node expressionNode() {
-        return null;
     }
 
     @Override
