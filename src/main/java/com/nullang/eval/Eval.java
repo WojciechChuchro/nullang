@@ -1,6 +1,7 @@
 package com.nullang.eval;
 
 import java.util.List;
+import java.util.Objects;
 
 import com.nullang.ast.*;
 import com.nullang.ast.expression.InfixExpression;
@@ -22,7 +23,7 @@ public class Eval {
             case IntegerIdentifier intNode ->
                     new IntegerObject(intNode.getValue());
             case BooleanIdentifier booleanNode ->
-                    booleanNode.value ? TRUE : FALSE;
+                    nativeBoolToBooleanObject(booleanNode.value);
             case InfixExpression infix -> {
                 var left = evaluate(infix.getLeft());
                 var right = evaluate(infix.getRight());
@@ -48,9 +49,13 @@ public class Eval {
         };
     }
 
-    private NullangObject evaluateInfixExpression(String operator,NullangObject left, NullangObject right) {
-        if (left.type() == ObjectType.INTEGER_OBJ &&  right.type() == ObjectType.INTEGER_OBJ) {
+    private NullangObject evaluateInfixExpression(String operator, NullangObject left, NullangObject right) {
+        if (left.type() == ObjectType.INTEGER_OBJ && right.type() == ObjectType.INTEGER_OBJ) {
             return evaluateIntegerInfixExpression(operator, left, right);
+        } else if(Objects.equals(operator, "==")) {
+            return nativeBoolToBooleanObject(left == right);
+        } else if(Objects.equals(operator, "!=")) {
+            return nativeBoolToBooleanObject(left != right);
         }
 
         return NULL;
@@ -69,6 +74,15 @@ public class Eval {
                     new IntegerObject(leftValue * rightValue);
             case "/" ->
                     new IntegerObject(leftValue / rightValue);
+
+            case "<" ->
+                    nativeBoolToBooleanObject(leftValue < rightValue);
+            case ">" ->
+                    nativeBoolToBooleanObject(leftValue > rightValue);
+            case "==" ->
+                    nativeBoolToBooleanObject(leftValue == rightValue);
+            case "!=" ->
+                    nativeBoolToBooleanObject(leftValue != rightValue);
             default ->
                     NULL;
         };
@@ -76,10 +90,14 @@ public class Eval {
 
     private NullangObject evaluateBangOperatorExpression(NullangObject right) {
         return switch (right) {
-            case BooleanObject b when b.value() -> FALSE;
-            case BooleanObject b -> TRUE;
-            case NullObject n -> TRUE;
-            default -> FALSE;
+            case BooleanObject b when b.value() ->
+                    FALSE;
+            case BooleanObject b ->
+                    TRUE;
+            case NullObject n ->
+                    TRUE;
+            default ->
+                    FALSE;
         };
     }
 
@@ -91,6 +109,14 @@ public class Eval {
         var negativeValue = -((IntegerObject) right).value();
 
         return new IntegerObject(negativeValue);
+    }
+
+    private NullangObject nativeBoolToBooleanObject(boolean input) {
+        if (input) {
+            return TRUE;
+        } else {
+            return FALSE;
+        }
     }
 
     private NullangObject evalStatements(List<? extends Node> nodes) {

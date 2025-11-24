@@ -41,7 +41,17 @@ public class NullangObjectTest {
                 Arguments.of(parseInput("!!5;").getFirst(), new BooleanObject(true)),
                 Arguments.of(parseInput("!!!!5;").getFirst(), new BooleanObject(true)),
                 Arguments.of(parseInput("!!!!-5;").getFirst(), new BooleanObject(true)),
-                Arguments.of(parseInput("!!!-5;").getFirst(), new BooleanObject(false))
+                Arguments.of(parseInput("!!!-5;").getFirst(), new BooleanObject(false)),
+                Arguments.of(parseInput("true;").getFirst(), new BooleanObject(true)),
+                Arguments.of(parseInput("false;").getFirst(), new BooleanObject(false)),
+                Arguments.of(parseInput("1 < 2").getFirst(), new BooleanObject(true)),
+                Arguments.of(parseInput("1 > 2").getFirst(), new BooleanObject(false)),
+                Arguments.of(parseInput("1 < 1").getFirst(), new BooleanObject(false)),
+                Arguments.of(parseInput("1 > 1").getFirst(), new BooleanObject(false)),
+                Arguments.of(parseInput("1 == 1").getFirst(), new BooleanObject(true)),
+                Arguments.of(parseInput("1 != 1").getFirst(), new BooleanObject(false)),
+                Arguments.of(parseInput("1 == 2").getFirst(), new BooleanObject(false)),
+                Arguments.of(parseInput("1 != 2").getFirst(), new BooleanObject(true))
         );
     }
 
