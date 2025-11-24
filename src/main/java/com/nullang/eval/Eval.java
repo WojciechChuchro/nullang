@@ -9,6 +9,7 @@ import com.nullang.ast.expression.InfixExpression;
 import com.nullang.ast.expression.PrefixExpression;
 import com.nullang.ast.statement.BlockStatement;
 import com.nullang.ast.statement.ExpressionStatement;
+import com.nullang.ast.statement.ReturnStatement;
 import com.nullang.nullangobject.*;
 
 public class Eval {
@@ -19,7 +20,7 @@ public class Eval {
     public NullangObject evaluate(Node node) {
         return switch (node) {
             case Program program ->
-                    evalStatements(program.statements);
+                    evalProgram(program.statements);
             case ExpressionStatement exp ->
                     evaluate(exp.expression());
             case IntegerIdentifier intNode ->
@@ -29,7 +30,11 @@ public class Eval {
             case IfExpression ifExpression ->
                     evaluateIfExpression(ifExpression);
             case BlockStatement blockStatement ->
-                evalStatements(blockStatement.getStatements());
+                evalProgram(blockStatement.getStatements());
+            case ReturnStatement returnStatement -> {
+                var value = evaluate(returnStatement.getReturnValue());
+                yield new ReturnValue(value);
+            }
             case InfixExpression infix -> {
                 var left = evaluate(infix.getLeft());
                 var right = evaluate(infix.getRight());
@@ -149,13 +154,31 @@ public class Eval {
         }
     }
 
-    private NullangObject evalStatements(List<? extends Node> nodes) {
+    private NullangObject evalProgram(List<? extends Node> nodes) {
         NullangObject result = null;
 
         for (Node n : nodes) {
             result = evaluate(n);
+            if (result.type() == ObjectType.RETURN_VALUE){
+                return ((ReturnValue) result).value();
+            }
         }
 
         return result;
     }
+
+
+
+    private NullangObject evalBlockStatement(BlockStatement block) {
+        NullangObject result = null;
+
+        for (Node n : block.getStatements()) {
+            result = evaluate(n);
+            if (result != null && result.type() == ObjectType.RETURN_VALUE)
+                return result;
+        }
+
+        return result;
+    }
+
 }

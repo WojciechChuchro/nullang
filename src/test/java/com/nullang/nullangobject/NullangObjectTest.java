@@ -91,6 +91,21 @@ public class NullangObjectTest {
         );
     }
 
+    private static Stream<Arguments> returnExpression() {
+        return Stream.of(
+                Arguments.of(parseInput("return 10;").getFirst(), new IntegerObject(10)),
+                Arguments.of(parseInput("return 10; 9").getFirst(), new IntegerObject(10)),
+                Arguments.of(parseInput("return 2 * 5; 9").getFirst(), new IntegerObject(10)),
+                Arguments.of(parseInput("9 return 20 / 2; 9").getFirst(), new IntegerObject(10)),
+                Arguments.of(parseInput("if (10 > 1) {\n" +
+                        "if (10 > 1) {\n" +
+                        "return 10;\n" +
+                        "}\n" +
+                        "return 1;\n" +
+                        "}").getFirst(), new IntegerObject(10))
+        );
+    }
+
     private static List<Statement> parseInput(String input) {
         Reader reader = new StringReader(input);
         try (Lexer lexer = new Lexer(reader);
@@ -150,5 +165,17 @@ public class NullangObjectTest {
         } else {
             assertThat(evaluated.inspect()).isEqualTo(expected.inspect());
         }
+    }
+
+
+
+    @ParameterizedTest
+    @MethodSource("returnExpression")
+    public void shouldReturnExpression(Statement statement, IntegerObject expected) {
+        Eval e = new Eval();
+
+        var evaluated = e.evaluate(statement);
+
+        assertThat(evaluated.inspect()).isEqualTo(expected.inspect());
     }
 }
