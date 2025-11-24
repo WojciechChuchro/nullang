@@ -35,6 +35,8 @@ public class Eval {
         switch (operator) {
             case "!":
                 return evaluateBangOperatorExpression(right);
+            case "-":
+                return evaluateMinusPrefixOperatorExpression(right);
             default:
                 return NULL;
         }
@@ -47,6 +49,16 @@ public class Eval {
             case NullObject n -> TRUE;
             default -> FALSE;
         };
+    }
+
+    private NullangObject evaluateMinusPrefixOperatorExpression(NullangObject right) {
+        if (right.type() != ObjectType.INTEGER_OBJ) {
+            return NULL;
+        }
+
+        var negativeValue = -((IntegerObject) right).value();
+
+        return new IntegerObject(negativeValue);
     }
 
     private NullangObject evalStatements(List<? extends Node> nodes) {

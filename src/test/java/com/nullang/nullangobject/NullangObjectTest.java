@@ -18,21 +18,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class NullangObjectTest {
 
-    private static Stream<Arguments> oneValidBooleanExpressions() throws IOException {
+    private static Stream<Arguments> oneValidBooleanExpressions() {
         return Stream.of(
                 Arguments.of(parseInput("true;").getFirst()),
                 Arguments.of(parseInput("false;").getFirst())
         );
     }
 
-    private static Stream<Arguments> zeroBooleanExpressions() throws IOException {
+    private static Stream<Arguments> zeroBooleanExpressions() {
         return Stream.of(
                 Arguments.of(parseInput("5;").getFirst())
         );
     }
 
 
-    private static Stream<Arguments> bangOperator() throws IOException {
+    private static Stream<Arguments> bangOperator() {
         return Stream.of(
                 Arguments.of(parseInput("!true;").getFirst(), new BooleanObject(false)),
                 Arguments.of(parseInput("!false;").getFirst(), new BooleanObject(true)),
@@ -40,6 +40,15 @@ public class NullangObjectTest {
                 Arguments.of(parseInput("!!true;").getFirst(), new BooleanObject(true)),
                 Arguments.of(parseInput("!!false;").getFirst(), new BooleanObject(false)),
                 Arguments.of(parseInput("!!5;").getFirst(), new BooleanObject(true))
+        );
+    }
+
+    private static Stream<Arguments> minusOperator() {
+        return Stream.of(
+                Arguments.of(parseInput("-5;").getFirst(), new IntegerObject(-5)),
+                Arguments.of(parseInput("5;").getFirst(), new IntegerObject(5)),
+                Arguments.of(parseInput("-10;").getFirst(), new IntegerObject(-10)),
+                Arguments.of(parseInput("10;").getFirst(), new IntegerObject(10))
         );
     }
 
@@ -76,6 +85,17 @@ public class NullangObjectTest {
         Eval e = new Eval();
 
         BooleanObject evaluate = (BooleanObject) e.evaluate(statement);
+
+        assertThat(evaluate.inspect()).isEqualTo(expected.inspect());
+    }
+
+
+    @ParameterizedTest
+    @MethodSource("minusOperator")
+    public void shouldEvaluateBangOperator(Statement statement, IntegerObject expected) {
+        Eval e = new Eval();
+
+        IntegerObject evaluate = (IntegerObject) e.evaluate(statement);
 
         assertThat(evaluate.inspect()).isEqualTo(expected.inspect());
     }
