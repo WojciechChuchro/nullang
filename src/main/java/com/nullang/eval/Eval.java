@@ -4,8 +4,10 @@ import java.util.List;
 import java.util.Objects;
 
 import com.nullang.ast.*;
+import com.nullang.ast.expression.IfExpression;
 import com.nullang.ast.expression.InfixExpression;
 import com.nullang.ast.expression.PrefixExpression;
+import com.nullang.ast.statement.BlockStatement;
 import com.nullang.ast.statement.ExpressionStatement;
 import com.nullang.nullangobject.*;
 
@@ -24,6 +26,10 @@ public class Eval {
                     new IntegerObject(intNode.getValue());
             case BooleanIdentifier booleanNode ->
                     nativeBoolToBooleanObject(booleanNode.value);
+            case IfExpression ifExpression ->
+                    evaluateIfExpression(ifExpression);
+            case BlockStatement blockStatement ->
+                evalStatements(blockStatement.getStatements());
             case InfixExpression infix -> {
                 var left = evaluate(infix.getLeft());
                 var right = evaluate(infix.getRight());
@@ -36,6 +42,30 @@ public class Eval {
             default ->
                     NULL;
         };
+    }
+
+    private NullangObject evaluateIfExpression(IfExpression ifExpression) {
+        var condition = evaluate(ifExpression.getCondition());
+
+        if (isTruthy(condition)) {
+            return evaluate(ifExpression.getConsequence());
+        } else if (ifExpression.getAlternative().isPresent()) {
+            return evaluate(ifExpression.getAlternative().get());
+        } else {
+            return NULL;
+        }
+    }
+
+    private boolean isTruthy(NullangObject condition) {
+        if (condition == NULL) {
+            return false;
+        } else if (condition == TRUE) {
+            return true;
+        } else if (condition == FALSE) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
     private NullangObject evaluatePrefixExpression(String operator, NullangObject right) {
@@ -52,9 +82,9 @@ public class Eval {
     private NullangObject evaluateInfixExpression(String operator, NullangObject left, NullangObject right) {
         if (left.type() == ObjectType.INTEGER_OBJ && right.type() == ObjectType.INTEGER_OBJ) {
             return evaluateIntegerInfixExpression(operator, left, right);
-        } else if(Objects.equals(operator, "==")) {
+        } else if (Objects.equals(operator, "==")) {
             return nativeBoolToBooleanObject(left == right);
-        } else if(Objects.equals(operator, "!=")) {
+        } else if (Objects.equals(operator, "!=")) {
             return nativeBoolToBooleanObject(left != right);
         }
 

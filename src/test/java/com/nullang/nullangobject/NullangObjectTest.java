@@ -44,6 +44,11 @@ public class NullangObjectTest {
                 Arguments.of(parseInput("!!!-5;").getFirst(), new BooleanObject(false)),
                 Arguments.of(parseInput("true;").getFirst(), new BooleanObject(true)),
                 Arguments.of(parseInput("false;").getFirst(), new BooleanObject(false)),
+                Arguments.of(parseInput("true == true;").getFirst(), new BooleanObject(true)),
+                Arguments.of(parseInput("false == false;").getFirst(), new BooleanObject(true)),
+                Arguments.of(parseInput("false != false;").getFirst(), new BooleanObject(false)),
+                Arguments.of(parseInput("true != true;").getFirst(), new BooleanObject(false)),
+                Arguments.of(parseInput("true != false;").getFirst(), new BooleanObject(true)),
                 Arguments.of(parseInput("1 < 2").getFirst(), new BooleanObject(true)),
                 Arguments.of(parseInput("1 > 2").getFirst(), new BooleanObject(false)),
                 Arguments.of(parseInput("1 < 1").getFirst(), new BooleanObject(false)),
@@ -64,6 +69,22 @@ public class NullangObjectTest {
                 Arguments.of(parseInput("5 + 5").getFirst(), new IntegerObject(10)),
                 Arguments.of(parseInput("6 - 9").getFirst(), new IntegerObject(-3)),
                 Arguments.of(parseInput("420 / 20").getFirst(), new IntegerObject(21)),
+                Arguments.of(parseInput("6 * 6").getFirst(), new IntegerObject(36)),
+                Arguments.of(parseInput("(2 + 2) * 2").getFirst(), new IntegerObject(8)),
+                Arguments.of(parseInput("2 + 2 * 2").getFirst(), new IntegerObject(6))
+        );
+    }
+
+
+    private static Stream<Arguments> ifElseExpression() {
+        return Stream.of(
+                Arguments.of(parseInput("if (true) { 10 };").getFirst(), new IntegerObject(10)),
+                Arguments.of(parseInput("if (false) {10}; ").getFirst(), new IntegerObject(0)),
+                Arguments.of(parseInput("if (1) { 10 };").getFirst(), new IntegerObject(10)),
+                Arguments.of(parseInput("if ( 1 < 2) { 10 };").getFirst(), new IntegerObject(10)),
+                Arguments.of(parseInput("if ( 1 > 2) { 10 };").getFirst(), new IntegerObject(0)),
+                Arguments.of(parseInput("if ( 1 < 2) { 10 } else { 20 }").getFirst(), new IntegerObject(10)),
+                Arguments.of(parseInput("if ( 1 > 2) { 10 } else { 20 }").getFirst(), new IntegerObject(20)),
                 Arguments.of(parseInput("6 * 6").getFirst(), new IntegerObject(36)),
                 Arguments.of(parseInput("(2 + 2) * 2").getFirst(), new IntegerObject(8)),
                 Arguments.of(parseInput("2 + 2 * 2").getFirst(), new IntegerObject(6))
@@ -115,5 +136,19 @@ public class NullangObjectTest {
         IntegerObject evaluate = (IntegerObject) e.evaluate(statement);
 
         assertThat(evaluate.inspect()).isEqualTo(expected.inspect());
+    }
+
+    @ParameterizedTest
+    @MethodSource("ifElseExpression")
+    public void shouldIfElseExpression(Statement statement, IntegerObject expected) {
+        Eval e = new Eval();
+
+        var evaluated = e.evaluate(statement);
+
+        if (evaluated.getClass().equals(NullObject.class)) {
+            assertThat(evaluated.inspect()).isEqualTo("null");
+        } else {
+            assertThat(evaluated.inspect()).isEqualTo(expected.inspect());
+        }
     }
 }

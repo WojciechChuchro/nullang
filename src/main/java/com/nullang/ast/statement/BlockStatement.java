@@ -21,6 +21,10 @@ public class BlockStatement implements Statement {
     public Statement getStatement(int index) {
         return statements.get(index);
     }
+
+    public List<Statement>  getStatements() {
+        return statements;
+    }
     public int statementsSize() {
         return statements.size();
     }
