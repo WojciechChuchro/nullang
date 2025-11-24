@@ -3,6 +3,7 @@ package com.nullang.eval;
 import java.util.List;
 
 import com.nullang.ast.*;
+import com.nullang.ast.expression.InfixExpression;
 import com.nullang.ast.expression.PrefixExpression;
 import com.nullang.ast.statement.ExpressionStatement;
 import com.nullang.nullangobject.*;
@@ -22,6 +23,11 @@ public class Eval {
                     new IntegerObject(intNode.getValue());
             case BooleanIdentifier booleanNode ->
                     booleanNode.value ? TRUE : FALSE;
+            case InfixExpression infix -> {
+                var left = evaluate(infix.getLeft());
+                var right = evaluate(infix.getRight());
+                yield evaluateInfixExpression(infix.getOperator(), left, right);
+            }
             case PrefixExpression pe -> {
                 var right = evaluate(pe.getRight());
                 yield evaluatePrefixExpression(pe.getOperator(), right);
@@ -32,14 +38,40 @@ public class Eval {
     }
 
     private NullangObject evaluatePrefixExpression(String operator, NullangObject right) {
-        switch (operator) {
-            case "!":
-                return evaluateBangOperatorExpression(right);
-            case "-":
-                return evaluateMinusPrefixOperatorExpression(right);
-            default:
-                return NULL;
+        return switch (operator) {
+            case "!" ->
+                    evaluateBangOperatorExpression(right);
+            case "-" ->
+                    evaluateMinusPrefixOperatorExpression(right);
+            default ->
+                    NULL;
+        };
+    }
+
+    private NullangObject evaluateInfixExpression(String operator,NullangObject left, NullangObject right) {
+        if (left.type() == ObjectType.INTEGER_OBJ &&  right.type() == ObjectType.INTEGER_OBJ) {
+            return evaluateIntegerInfixExpression(operator, left, right);
         }
+
+        return NULL;
+    }
+
+    private NullangObject evaluateIntegerInfixExpression(String operator, NullangObject left, NullangObject right) {
+        var leftValue = ((IntegerObject) left).value();
+        var rightValue = ((IntegerObject) right).value();
+
+        return switch (operator) {
+            case "+" ->
+                    new IntegerObject(leftValue + rightValue);
+            case "-" ->
+                    new IntegerObject(leftValue - rightValue);
+            case "*" ->
+                    new IntegerObject(leftValue * rightValue);
+            case "/" ->
+                    new IntegerObject(leftValue / rightValue);
+            default ->
+                    NULL;
+        };
     }
 
     private NullangObject evaluateBangOperatorExpression(NullangObject right) {

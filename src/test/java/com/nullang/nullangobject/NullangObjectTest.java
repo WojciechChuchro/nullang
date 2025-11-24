@@ -8,7 +8,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.List;
@@ -39,16 +38,25 @@ public class NullangObjectTest {
                 Arguments.of(parseInput("!5;").getFirst(), new BooleanObject(false)),
                 Arguments.of(parseInput("!!true;").getFirst(), new BooleanObject(true)),
                 Arguments.of(parseInput("!!false;").getFirst(), new BooleanObject(false)),
-                Arguments.of(parseInput("!!5;").getFirst(), new BooleanObject(true))
+                Arguments.of(parseInput("!!5;").getFirst(), new BooleanObject(true)),
+                Arguments.of(parseInput("!!!!5;").getFirst(), new BooleanObject(true)),
+                Arguments.of(parseInput("!!!!-5;").getFirst(), new BooleanObject(true)),
+                Arguments.of(parseInput("!!!-5;").getFirst(), new BooleanObject(false))
         );
     }
 
-    private static Stream<Arguments> minusOperator() {
+    private static Stream<Arguments> integerExpression() {
         return Stream.of(
                 Arguments.of(parseInput("-5;").getFirst(), new IntegerObject(-5)),
                 Arguments.of(parseInput("5;").getFirst(), new IntegerObject(5)),
                 Arguments.of(parseInput("-10;").getFirst(), new IntegerObject(-10)),
-                Arguments.of(parseInput("10;").getFirst(), new IntegerObject(10))
+                Arguments.of(parseInput("10;").getFirst(), new IntegerObject(10)),
+                Arguments.of(parseInput("5 + 5").getFirst(), new IntegerObject(10)),
+                Arguments.of(parseInput("6 - 9").getFirst(), new IntegerObject(-3)),
+                Arguments.of(parseInput("420 / 20").getFirst(), new IntegerObject(21)),
+                Arguments.of(parseInput("6 * 6").getFirst(), new IntegerObject(36)),
+                Arguments.of(parseInput("(2 + 2) * 2").getFirst(), new IntegerObject(8)),
+                Arguments.of(parseInput("2 + 2 * 2").getFirst(), new IntegerObject(6))
         );
     }
 
@@ -89,10 +97,9 @@ public class NullangObjectTest {
         assertThat(evaluate.inspect()).isEqualTo(expected.inspect());
     }
 
-
     @ParameterizedTest
-    @MethodSource("minusOperator")
-    public void shouldEvaluateBangOperator(Statement statement, IntegerObject expected) {
+    @MethodSource("integerExpression")
+    public void shouldEvaluateIntegerExpression(Statement statement, IntegerObject expected) {
         Eval e = new Eval();
 
         IntegerObject evaluate = (IntegerObject) e.evaluate(statement);
