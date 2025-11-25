@@ -93,16 +93,29 @@ public class NullangObjectTest {
 
     private static Stream<Arguments> returnExpression() {
         return Stream.of(
+                Arguments.of(parseInput("9; return 2 * 5; 9;").getFirst(), new IntegerObject(10)),
                 Arguments.of(parseInput("return 10;").getFirst(), new IntegerObject(10)),
-                Arguments.of(parseInput("return 10; 9").getFirst(), new IntegerObject(10)),
-                Arguments.of(parseInput("return 2 * 5; 9").getFirst(), new IntegerObject(10)),
-                Arguments.of(parseInput("9 return 20 / 2; 9").getFirst(), new IntegerObject(10)),
+                Arguments.of(parseInput("return 10; 9;").getFirst(), new IntegerObject(10)),
+                Arguments.of(parseInput("return 2 * 5; 9;").getFirst(), new IntegerObject(10)),
+                Arguments.of(parseInput("if(10 > 5){9; return 2 * 5; 9;}").getFirst(), new IntegerObject(10)),
                 Arguments.of(parseInput("if (10 > 1) {\n" +
                         "if (10 > 1) {\n" +
                         "return 10;\n" +
                         "}\n" +
                         "return 1;\n" +
                         "}").getFirst(), new IntegerObject(10))
+        );
+    }
+
+
+    private static Stream<Arguments> errors() {
+        return Stream.of(
+                Arguments.of(parseInput("5 + true").getFirst(), "type mismatch: INTEGER + BOOLEAN"),
+                Arguments.of(parseInput("5 + true; 5;").getFirst(), "type mismatch: INTEGER + BOOLEAN"),
+                Arguments.of(parseInput("-true").getFirst(), "unknown operator: -BOOLEAN"),
+                Arguments.of(parseInput("true + false").getFirst(), "unknown operator: BOOLEAN + BOOLEAN"),
+                Arguments.of(parseInput("5; true + false; 5;").getFirst(), "unknown operator: BOOLEAN + BOOLEAN"),
+                Arguments.of(parseInput("if (10 > 1) { true + false; }").getFirst(), "unknown operator: BOOLEAN + BOOLEAN")
         );
     }
 
@@ -177,5 +190,21 @@ public class NullangObjectTest {
         var evaluated = e.evaluate(statement);
 
         assertThat(evaluated.inspect()).isEqualTo(expected.inspect());
+    }
+
+
+    @ParameterizedTest
+    @MethodSource("errors")
+    public void testErrorHandling(Statement statement, String expected) {
+        Eval e = new Eval();
+
+        var evaluated = e.evaluate(statement);
+
+        assertThat(evaluated)
+                .isInstanceOf(ErrorObject.class)
+                .extracting(
+                        obj -> ((ErrorObject) obj).inspect()
+                )
+                .isEqualTo("ERROR: " + expected);
     }
 }

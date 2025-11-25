@@ -4,7 +4,7 @@ package com.nullang.nullangobject;
 public class NullObject implements NullangObject{
     @Override
     public ObjectType type() {
-        return ObjectType.NULL_OBJ;
+        return ObjectType.NULL;
     }
 
     @Override

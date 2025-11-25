@@ -30,18 +30,30 @@ public class Eval {
             case IfExpression ifExpression ->
                     evaluateIfExpression(ifExpression);
             case BlockStatement blockStatement ->
-                evalProgram(blockStatement.getStatements());
+                    evalBlockStatement(blockStatement);
             case ReturnStatement returnStatement -> {
                 var value = evaluate(returnStatement.getReturnValue());
+                if (isError(value)) {
+                    yield value;
+                }
                 yield new ReturnValue(value);
             }
             case InfixExpression infix -> {
                 var left = evaluate(infix.getLeft());
+                if (isError(left)) {
+                    yield left;
+                }
                 var right = evaluate(infix.getRight());
+                if (isError(right)) {
+                    yield right;
+                }
                 yield evaluateInfixExpression(infix.getOperator(), left, right);
             }
             case PrefixExpression pe -> {
                 var right = evaluate(pe.getRight());
+                if (isError(right)) {
+                    yield right;
+                }
                 yield evaluatePrefixExpression(pe.getOperator(), right);
             }
             default ->
@@ -51,6 +63,9 @@ public class Eval {
 
     private NullangObject evaluateIfExpression(IfExpression ifExpression) {
         var condition = evaluate(ifExpression.getCondition());
+        if (isError(condition)) {
+            return condition;
+        }
 
         if (isTruthy(condition)) {
             return evaluate(ifExpression.getConsequence());
@@ -80,20 +95,23 @@ public class Eval {
             case "-" ->
                     evaluateMinusPrefixOperatorExpression(right);
             default ->
-                    NULL;
+                    new ErrorObject("unknown operator: " + operator + " " + right.type());
         };
     }
 
     private NullangObject evaluateInfixExpression(String operator, NullangObject left, NullangObject right) {
-        if (left.type() == ObjectType.INTEGER_OBJ && right.type() == ObjectType.INTEGER_OBJ) {
+        if (left.type() == ObjectType.INTEGER && right.type() == ObjectType.INTEGER) {
             return evaluateIntegerInfixExpression(operator, left, right);
         } else if (Objects.equals(operator, "==")) {
             return nativeBoolToBooleanObject(left == right);
         } else if (Objects.equals(operator, "!=")) {
             return nativeBoolToBooleanObject(left != right);
+        } else if (left.type() != right.type()) {
+            return new ErrorObject("type mismatch: " + left.type() + " " + operator + " " + right.type());
         }
 
-        return NULL;
+
+        return new ErrorObject("unknown operator: " + left.type() + " " + operator + " " + right.type());
     }
 
     private NullangObject evaluateIntegerInfixExpression(String operator, NullangObject left, NullangObject right) {
@@ -119,7 +137,7 @@ public class Eval {
             case "!=" ->
                     nativeBoolToBooleanObject(leftValue != rightValue);
             default ->
-                    NULL;
+                    new ErrorObject("unknown operator: " + left.type() + " " + operator + " " + right.type());
         };
     }
 
@@ -137,8 +155,8 @@ public class Eval {
     }
 
     private NullangObject evaluateMinusPrefixOperatorExpression(NullangObject right) {
-        if (right.type() != ObjectType.INTEGER_OBJ) {
-            return NULL;
+        if (right.type() != ObjectType.INTEGER) {
+            return new ErrorObject("unknown operator: -" + right.type());
         }
 
         var negativeValue = -((IntegerObject) right).value();
@@ -159,14 +177,13 @@ public class Eval {
 
         for (Node n : nodes) {
             result = evaluate(n);
-            if (result.type() == ObjectType.RETURN_VALUE){
-                return ((ReturnValue) result).value();
+            if (result.type() == ObjectType.RETURN_VALUE || result.type() == ObjectType.ERROR) {
+                return result;
             }
         }
 
         return result;
     }
-
 
 
     private NullangObject evalBlockStatement(BlockStatement block) {
@@ -176,9 +193,18 @@ public class Eval {
             result = evaluate(n);
             if (result != null && result.type() == ObjectType.RETURN_VALUE)
                 return result;
+            else if (result != null && result.type() == ObjectType.ERROR) {
+                return result;
+            }
         }
 
         return result;
     }
 
+    private boolean isError(NullangObject obj) {
+        if (obj != null) {
+            return obj.type() == ObjectType.ERROR;
+        }
+        return false;
+    }
 }
