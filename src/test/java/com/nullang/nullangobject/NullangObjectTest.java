@@ -115,7 +115,17 @@ public class NullangObjectTest {
                 Arguments.of(parseInput("-true").getFirst(), "unknown operator: -BOOLEAN"),
                 Arguments.of(parseInput("true + false").getFirst(), "unknown operator: BOOLEAN + BOOLEAN"),
                 Arguments.of(parseInput("5; true + false; 5;").getFirst(), "unknown operator: BOOLEAN + BOOLEAN"),
-                Arguments.of(parseInput("if (10 > 1) { true + false; }").getFirst(), "unknown operator: BOOLEAN + BOOLEAN")
+                Arguments.of(parseInput("if (10 > 1) { true + false; }").getFirst(), "unknown operator: BOOLEAN + BOOLEAN"),
+                Arguments.of(parseInput("foobar").getFirst(), "identifier not found: foobar")
+        );
+    }
+
+    private static Stream<Arguments> letStatements() {
+        return Stream.of(
+                Arguments.of(parseInput("let a = 5; a;").getFirst(), new IntegerObject(5)),
+                Arguments.of(parseInput("let a = 5* 5; a;").getFirst(), new IntegerObject(25)),
+                Arguments.of(parseInput("let a = 5; let b = a; b").getFirst(), new IntegerObject(5)),
+                Arguments.of(parseInput("let a = 5; let b = a; let c = a + b + 5 ; c").getFirst(), new IntegerObject(15))
         );
     }
 
@@ -206,5 +216,16 @@ public class NullangObjectTest {
                         obj -> ((ErrorObject) obj).inspect()
                 )
                 .isEqualTo("ERROR: " + expected);
+    }
+
+
+    @ParameterizedTest
+    @MethodSource("letStatements")
+    public void testLetStatements(Statement statement, IntegerObject expected) {
+        Eval e = new Eval();
+
+        var evaluated = e.evaluate(statement);
+
+        assertThat(evaluated.inspect()).isEqualTo(expected.inspect());
     }
 }
