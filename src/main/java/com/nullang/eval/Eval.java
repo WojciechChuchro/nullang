@@ -1,10 +1,5 @@
 package com.nullang.eval;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-
 import com.nullang.ast.*;
 import com.nullang.ast.expression.IfExpression;
 import com.nullang.ast.expression.InfixExpression;
@@ -15,11 +10,16 @@ import com.nullang.ast.statement.LetStatement;
 import com.nullang.ast.statement.ReturnStatement;
 import com.nullang.nullangobject.*;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
 public class Eval {
     private final static NullangObject NULL = new NullObject();
     private final static NullangObject TRUE = new BooleanObject(true);
     private final static NullangObject FALSE = new BooleanObject(false);
-    private final static Map<Identifier, NullangObject> ENV = new HashMap<>();
+    private final static Map<String, NullangObject> ENV = new HashMap<>();
 
     public NullangObject evaluate(Node node) {
         return switch (node) {
@@ -47,7 +47,8 @@ public class Eval {
                 if (isError(value)) {
                     yield value;
                 }
-                yield ENV.put(letStatement.getName(), value);
+                ENV.put(letStatement.getName().getValue(), value);
+                yield value;
             }
             case Identifier identifier ->
                     evalIdentifier(identifier);
@@ -75,10 +76,10 @@ public class Eval {
     }
 
     private NullangObject evalIdentifier(Identifier identifier) {
-        if (!ENV.containsKey(identifier)) {
+        if (!ENV.containsKey(identifier.getValue())) {
             return new ErrorObject("identifier not found: " + identifier.getValue());
         }
-        return ENV.get(identifier);
+        return ENV.get(identifier.getValue());
     }
 
     private NullangObject evaluateIfExpression(IfExpression ifExpression) {
