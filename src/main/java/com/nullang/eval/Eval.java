@@ -4,10 +4,7 @@ import com.nullang.ast.*;
 import com.nullang.ast.expression.IfExpression;
 import com.nullang.ast.expression.InfixExpression;
 import com.nullang.ast.expression.PrefixExpression;
-import com.nullang.ast.statement.BlockStatement;
-import com.nullang.ast.statement.ExpressionStatement;
-import com.nullang.ast.statement.LetStatement;
-import com.nullang.ast.statement.ReturnStatement;
+import com.nullang.ast.statement.*;
 import com.nullang.nullangobject.*;
 
 import java.util.HashMap;
@@ -69,6 +66,11 @@ public class Eval {
                     yield right;
                 }
                 yield evaluatePrefixExpression(pe.getOperator(), right);
+            }
+            case FnStatement fn -> {
+                var params = fn.getParameters();
+                var body = fn.getBody();
+                yield new FunctionObject(params, body,ENV);
             }
             default ->
                     NULL;

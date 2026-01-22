@@ -1,15 +1,20 @@
 package com.nullang.nullangobject;
 
+import com.nullang.ast.Identifier;
 import com.nullang.ast.Program;
+import com.nullang.ast.statement.BlockStatement;
 import com.nullang.eval.Eval;
 import com.nullang.lexer.Lexer;
 import com.nullang.parser.Parser;
+import com.nullang.token.Token;
+import com.nullang.token.TokenType;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.Reader;
 import java.io.StringReader;
+import java.util.List;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -128,6 +133,12 @@ public class NullangObjectTest {
         );
     }
 
+    private static Stream<Arguments> functionStatements() {
+        return Stream.of(
+                Arguments.of("test1", parseInput("fn(x) { x + 2 };"), "asdf")
+        );
+    }
+
     private static Program parseInput(String input) {
         Reader reader = new StringReader(input);
         try (Lexer lexer = new Lexer(reader);
@@ -223,5 +234,18 @@ public class NullangObjectTest {
         var evaluated = e.evaluate(program);
 
         assertThat(evaluated.inspect()).isEqualTo(expected.inspect());
+    }
+
+
+    @ParameterizedTest
+    @MethodSource("functionStatements")
+    public void testFunctions(String name, Program program, String fnObject) {
+        Eval e = new Eval();
+
+        var evaluated = e.evaluate(program);
+        assertThat(evaluated).isInstanceOf(FunctionObject.class);
+        FunctionObject fn = (FunctionObject) evaluated;
+        assertThat(fn.body().toString()).isEqualTo("(x + 2)");
+        assertThat(fn.parameters().size()).isEqualTo(1);
     }
 }
