@@ -3,6 +3,7 @@ package com.nullang.nullangobject;
 
 import com.nullang.ast.Identifier;
 import com.nullang.ast.statement.BlockStatement;
+import com.nullang.eval.Env;
 
 import java.util.List;
 import java.util.Map;
@@ -10,8 +11,8 @@ import java.util.Map;
 public record FunctionObject(
         List<Identifier> parameters,
         BlockStatement body,
-        Map<String, NullangObject> env
-       ) implements NullangObject{
+        Env env
+       ) implements NullangObject {
     @Override
     public ObjectType type() {
         return ObjectType.FUNCTION;

@@ -1,12 +1,14 @@
 package com.nullang.eval;
 
 import com.nullang.ast.*;
+import com.nullang.ast.expression.CallExpression;
 import com.nullang.ast.expression.IfExpression;
 import com.nullang.ast.expression.InfixExpression;
 import com.nullang.ast.expression.PrefixExpression;
 import com.nullang.ast.statement.*;
 import com.nullang.nullangobject.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,7 +18,7 @@ public class Eval {
     private final static NullangObject NULL = new NullObject();
     private final static NullangObject TRUE = new BooleanObject(true);
     private final static NullangObject FALSE = new BooleanObject(false);
-    private final static Map<String, NullangObject> ENV = new HashMap<>();
+    private final Env env  = new Env();
 
     public NullangObject evaluate(Node node) {
         return switch (node) {
@@ -44,7 +46,7 @@ public class Eval {
                 if (isError(value)) {
                     yield value;
                 }
-                ENV.put(letStatement.getName().getValue(), value);
+                env.define(letStatement.getName().getValue(), value);
                 yield value;
             }
             case Identifier identifier ->
@@ -70,7 +72,20 @@ public class Eval {
             case FnStatement fn -> {
                 var params = fn.getParameters();
                 var body = fn.getBody();
-                yield new FunctionObject(params, body,ENV);
+                yield new FunctionObject(params, body,env);
+            }
+
+            case CallExpression callExpression -> {
+                var function = evaluate(callExpression.getFunction());
+                if (isError(function)) {
+                    yield function;
+                }
+                var args = evalExpressions(callExpression.getArguments());
+                if (args.size() == 1 && isError(args.get(0))) {
+                    yield args.getFirst();
+                }
+                // TODO:
+
             }
             default ->
                     NULL;
@@ -78,10 +93,22 @@ public class Eval {
     }
 
     private NullangObject evalIdentifier(Identifier identifier) {
-        if (!ENV.containsKey(identifier.getValue())) {
+        if (!env.contains(identifier.getValue())) {
             return new ErrorObject("identifier not found: " + identifier.getValue());
         }
-        return ENV.get(identifier.getValue());
+        return env.get(identifier.getValue());
+    }
+
+    private List<NullangObject> evalExpressions(List<Expression> expressions) {
+        List<NullangObject> result = new ArrayList<>();
+        for (Expression exp : expressions) {
+            var evaluated = evaluate(exp);
+            if (isError(evaluated)) {
+                return new ArrayList<>(List.of(evaluated));
+            }
+            result.add(evaluated);
+        }
+        return result;
     }
 
     private NullangObject evaluateIfExpression(IfExpression ifExpression) {

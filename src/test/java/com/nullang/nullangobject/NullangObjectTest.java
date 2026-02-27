@@ -135,7 +135,7 @@ public class NullangObjectTest {
 
     private static Stream<Arguments> functionStatements() {
         return Stream.of(
-                Arguments.of("test1", parseInput("fn(x) { x + 2 };"), "asdf")
+                Arguments.of("test1", parseInput("let identity = fn(x) { x; }; identity(5);"), "asdf")
         );
     }
 
