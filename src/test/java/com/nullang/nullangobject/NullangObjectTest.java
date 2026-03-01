@@ -245,9 +245,8 @@ public class NullangObjectTest {
         Eval e = new Eval();
 
         var evaluated = e.evaluate(program, env);
-        assertThat(evaluated).isInstanceOf(FunctionObject.class);
-        FunctionObject fn = (FunctionObject) evaluated;
-        assertThat(fn.body().toString()).isEqualTo("(x + 2)");
-        assertThat(fn.parameters().size()).isEqualTo(1);
+        assertThat(evaluated).isInstanceOf(IntegerObject.class);
+        var val = (IntegerObject) evaluated;
+        assertThat(val.inspect()).isEqualTo("5");
     }
 }

@@ -23,7 +23,7 @@ public class Eval {
             case Program program ->
                     evalProgram(program.statements);
             case ExpressionStatement exp ->
-                    evaluate(exp.expression(), env);
+                    evaluate(exp.expression(), evalEnv);
             case IntegerIdentifier intNode ->
                     new IntegerObject(intNode.getValue());
             case BooleanIdentifier booleanNode ->
@@ -33,14 +33,14 @@ public class Eval {
             case BlockStatement blockStatement ->
                     evalBlockStatement(blockStatement, evalEnv);
             case ReturnStatement returnStatement -> {
-                var value = evaluate(returnStatement.getReturnValue(), env);
+                var value = evaluate(returnStatement.getReturnValue(), evalEnv);
                 if (isError(value)) {
                     yield value;
                 }
                 yield new ReturnValue(value);
             }
             case LetStatement letStatement -> {
-                var value = evaluate(letStatement.getValue(), env);
+                var value = evaluate(letStatement.getValue(), evalEnv);
                 if (isError(value)) {
                     yield value;
                 }
@@ -48,20 +48,20 @@ public class Eval {
                 yield value;
             }
             case Identifier identifier ->
-                    evalIdentifier(identifier);
+                    evalIdentifier(identifier, evalEnv);
             case InfixExpression infix -> {
-                var left = evaluate(infix.getLeft(), env);
+                var left = evaluate(infix.getLeft(), evalEnv);
                 if (isError(left)) {
                     yield left;
                 }
-                var right = evaluate(infix.getRight(), env);
+                var right = evaluate(infix.getRight(), evalEnv);
                 if (isError(right)) {
                     yield right;
                 }
                 yield evaluateInfixExpression(infix.getOperator(), left, right);
             }
             case PrefixExpression pe -> {
-                var right = evaluate(pe.getRight(), env);
+                var right = evaluate(pe.getRight(), evalEnv);
                 if (isError(right)) {
                     yield right;
                 }
@@ -70,10 +70,10 @@ public class Eval {
             case FnStatement fn -> {
                 var params = fn.getParameters();
                 var body = fn.getBody();
-                yield new FunctionObject(params, body,env);
+                yield new FunctionObject(params, body, evalEnv);
             }
             case CallExpression callExpression -> {
-                var function = evaluate(callExpression.getFunction(), env);
+                var function = evaluate(callExpression.getFunction(), evalEnv);
                 if (isError(function)) {
                     yield function;
                 }
@@ -109,7 +109,7 @@ public class Eval {
         return fnEnv;
     }
 
-    private NullangObject evalIdentifier(Identifier identifier) {
+    private NullangObject evalIdentifier(Identifier identifier, Env env) {
         if (!env.contains(identifier.getValue())) {
             return new ErrorObject("identifier not found: " + identifier.getValue());
         }
