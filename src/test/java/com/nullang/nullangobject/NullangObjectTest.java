@@ -3,6 +3,7 @@ package com.nullang.nullangobject;
 import com.nullang.ast.Identifier;
 import com.nullang.ast.Program;
 import com.nullang.ast.statement.BlockStatement;
+import com.nullang.eval.Env;
 import com.nullang.eval.Eval;
 import com.nullang.lexer.Lexer;
 import com.nullang.parser.Parser;
@@ -20,6 +21,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class NullangObjectTest {
+    private final Env env = new Env();
 
     private static Stream<Arguments> oneValidBooleanExpressions() {
         return Stream.of(
@@ -152,7 +154,7 @@ public class NullangObjectTest {
     public void shouldEvaluateBoolean_whenOneProvided(Program program) {
         Eval e = new Eval();
 
-        BooleanObject evaluate = (BooleanObject) e.evaluate(program);
+        BooleanObject evaluate = (BooleanObject) e.evaluate(program, env);
 
         assertThat(evaluate.inspect()).isEqualTo(program.toString());
     }
@@ -162,7 +164,7 @@ public class NullangObjectTest {
     public void shouldNotEvaluateBoolean_whenZeroProvided(Program program) {
         Eval e = new Eval();
 
-        assertThat(e.evaluate(program)).isNotInstanceOfAny(BooleanObject.class);
+        assertThat(e.evaluate(program, env)).isNotInstanceOfAny(BooleanObject.class);
     }
 
 
@@ -171,7 +173,7 @@ public class NullangObjectTest {
     public void shouldEvaluateBangOperator(Program program, BooleanObject expected) {
         Eval e = new Eval();
 
-        BooleanObject evaluate = (BooleanObject) e.evaluate(program);
+        BooleanObject evaluate = (BooleanObject) e.evaluate(program, env);
 
         assertThat(evaluate.inspect()).isEqualTo(expected.inspect());
     }
@@ -181,7 +183,7 @@ public class NullangObjectTest {
     public void shouldEvaluateIntegerExpression(Program program, IntegerObject expected) {
         Eval e = new Eval();
 
-        IntegerObject evaluate = (IntegerObject) e.evaluate(program);
+        IntegerObject evaluate = (IntegerObject) e.evaluate(program, env);
 
         assertThat(evaluate.inspect()).isEqualTo(expected.inspect());
     }
@@ -191,7 +193,7 @@ public class NullangObjectTest {
     public void shouldIfElseExpression(Program program, IntegerObject expected) {
         Eval e = new Eval();
 
-        var evaluated = e.evaluate(program);
+        var evaluated = e.evaluate(program, env);
 
         if (evaluated.getClass().equals(NullObject.class)) {
             assertThat(evaluated.inspect()).isEqualTo("null");
@@ -205,7 +207,7 @@ public class NullangObjectTest {
     public void shouldReturnExpression(Program statement, IntegerObject expected) {
         Eval e = new Eval();
 
-        var evaluated = e.evaluate(statement);
+        var evaluated = e.evaluate(statement, env);
 
         assertThat(evaluated.inspect()).isEqualTo(expected.inspect());
     }
@@ -215,7 +217,7 @@ public class NullangObjectTest {
     public void testErrorHandling(Program program, String expected) {
         Eval e = new Eval();
 
-        var evaluated = e.evaluate(program);
+        var evaluated = e.evaluate(program, env);
 
         assertThat(evaluated)
                 .isInstanceOf(ErrorObject.class)
@@ -231,7 +233,7 @@ public class NullangObjectTest {
     public void testLetStatements(String name, Program program, IntegerObject expected) {
         Eval e = new Eval();
 
-        var evaluated = e.evaluate(program);
+        var evaluated = e.evaluate(program, env);
 
         assertThat(evaluated.inspect()).isEqualTo(expected.inspect());
     }
@@ -242,7 +244,7 @@ public class NullangObjectTest {
     public void testFunctions(String name, Program program, String fnObject) {
         Eval e = new Eval();
 
-        var evaluated = e.evaluate(program);
+        var evaluated = e.evaluate(program, env);
         assertThat(evaluated).isInstanceOf(FunctionObject.class);
         FunctionObject fn = (FunctionObject) evaluated;
         assertThat(fn.body().toString()).isEqualTo("(x + 2)");

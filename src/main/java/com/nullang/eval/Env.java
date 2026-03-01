@@ -7,8 +7,9 @@ import java.util.Map;
 
 public class Env {
     private final Map<String, NullangObject> ENV = new HashMap<>();
-    private final Env outer;
+    private Env outer = null;
 
+    public Env() {}
     public Env(Env outer) {
         this.outer = outer;
     }
@@ -18,6 +19,11 @@ public class Env {
     }
 
     public NullangObject get(String name) {
+        if (!ENV.containsKey(name)) {
+            if (outer != null) {
+                return outer.get(name);
+            }
+        }
         return ENV.get(name);
     }
 
@@ -25,4 +31,7 @@ public class Env {
         return ENV.containsKey(name);
     }
 
+    public void setOuter(Env outer) {
+        this.outer = outer;
+    }
 }

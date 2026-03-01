@@ -1,6 +1,7 @@
 package com.nullang;
 
 import com.nullang.ast.Program;
+import com.nullang.eval.Env;
 import com.nullang.eval.Eval;
 import com.nullang.lexer.Lexer;
 import com.nullang.parser.Parser;
@@ -18,7 +19,7 @@ public class Repl {
 
         try (Lexer lexer = new Lexer(reader)) {
             Program program = new Parser(lexer).parseProgram();
-            var res = eval.evaluate(program);
+            var res = eval.evaluate(program, new Env());
 
             System.out.println("Evaluated: " + res.inspect());
         }

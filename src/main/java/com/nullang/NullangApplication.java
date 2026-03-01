@@ -1,6 +1,7 @@
 package com.nullang;
 
 import com.nullang.ast.Program;
+import com.nullang.eval.Env;
 import com.nullang.eval.Eval;
 import com.nullang.lexer.Lexer;
 import com.nullang.parser.Parser;
@@ -23,7 +24,7 @@ public class NullangApplication {
 
             Program program = parseInput(input);
             var eval = new Eval();
-            var res = eval.evaluate(program);
+            var res = eval.evaluate(program, new Env());
             System.out.println("Evaluated: " + res.inspect());
         }
 

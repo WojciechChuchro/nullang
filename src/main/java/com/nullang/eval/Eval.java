@@ -9,9 +9,7 @@ import com.nullang.ast.statement.*;
 import com.nullang.nullangobject.*;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 public class Eval {
@@ -20,12 +18,12 @@ public class Eval {
     private final static NullangObject FALSE = new BooleanObject(false);
     private final Env env  = new Env();
 
-    public NullangObject evaluate(Node node) {
+    public NullangObject evaluate(Node node, Env evalEnv) {
         return switch (node) {
             case Program program ->
                     evalProgram(program.statements);
             case ExpressionStatement exp ->
-                    evaluate(exp.expression());
+                    evaluate(exp.expression(), env);
             case IntegerIdentifier intNode ->
                     new IntegerObject(intNode.getValue());
             case BooleanIdentifier booleanNode ->
@@ -33,16 +31,16 @@ public class Eval {
             case IfExpression ifExpression ->
                     evaluateIfExpression(ifExpression);
             case BlockStatement blockStatement ->
-                    evalBlockStatement(blockStatement);
+                    evalBlockStatement(blockStatement, evalEnv);
             case ReturnStatement returnStatement -> {
-                var value = evaluate(returnStatement.getReturnValue());
+                var value = evaluate(returnStatement.getReturnValue(), env);
                 if (isError(value)) {
                     yield value;
                 }
                 yield new ReturnValue(value);
             }
             case LetStatement letStatement -> {
-                var value = evaluate(letStatement.getValue());
+                var value = evaluate(letStatement.getValue(), env);
                 if (isError(value)) {
                     yield value;
                 }
@@ -52,18 +50,18 @@ public class Eval {
             case Identifier identifier ->
                     evalIdentifier(identifier);
             case InfixExpression infix -> {
-                var left = evaluate(infix.getLeft());
+                var left = evaluate(infix.getLeft(), env);
                 if (isError(left)) {
                     yield left;
                 }
-                var right = evaluate(infix.getRight());
+                var right = evaluate(infix.getRight(), env);
                 if (isError(right)) {
                     yield right;
                 }
                 yield evaluateInfixExpression(infix.getOperator(), left, right);
             }
             case PrefixExpression pe -> {
-                var right = evaluate(pe.getRight());
+                var right = evaluate(pe.getRight(), env);
                 if (isError(right)) {
                     yield right;
                 }
@@ -74,9 +72,8 @@ public class Eval {
                 var body = fn.getBody();
                 yield new FunctionObject(params, body,env);
             }
-
             case CallExpression callExpression -> {
-                var function = evaluate(callExpression.getFunction());
+                var function = evaluate(callExpression.getFunction(), env);
                 if (isError(function)) {
                     yield function;
                 }
@@ -84,12 +81,32 @@ public class Eval {
                 if (args.size() == 1 && isError(args.get(0))) {
                     yield args.getFirst();
                 }
-                // TODO:
-
+                yield applyFunction(function, args);
             }
             default ->
                     NULL;
         };
+    }
+
+    private NullangObject applyFunction(NullangObject function, List<NullangObject> args) {
+        if (function instanceof FunctionObject fn) {
+            var extendedEnv = extendedFunctionEnv(fn, args);
+            var evaluated = evaluate(fn.body(), extendedEnv);
+            if (evaluated instanceof ReturnValue rv) {
+                return rv.value();
+            }
+            return evaluated;
+        } else {
+            return new ErrorObject("not a function: " + function.type());
+        }
+    }
+
+    private Env extendedFunctionEnv(FunctionObject fn, List<NullangObject> args) {
+        var fnEnv = new Env(fn.env());
+        for (int i = 0; i < fn.parameters().size(); i++) {
+            fnEnv.define(fn.parameters().get(i).getValue(), args.get(i));
+        }
+        return fnEnv;
     }
 
     private NullangObject evalIdentifier(Identifier identifier) {
@@ -102,7 +119,7 @@ public class Eval {
     private List<NullangObject> evalExpressions(List<Expression> expressions) {
         List<NullangObject> result = new ArrayList<>();
         for (Expression exp : expressions) {
-            var evaluated = evaluate(exp);
+            var evaluated = evaluate(exp, env);
             if (isError(evaluated)) {
                 return new ArrayList<>(List.of(evaluated));
             }
@@ -112,15 +129,15 @@ public class Eval {
     }
 
     private NullangObject evaluateIfExpression(IfExpression ifExpression) {
-        var condition = evaluate(ifExpression.getCondition());
+        var condition = evaluate(ifExpression.getCondition(), env);
         if (isError(condition)) {
             return condition;
         }
 
         if (isTruthy(condition)) {
-            return evaluate(ifExpression.getConsequence());
+            return evaluate(ifExpression.getConsequence(), env);
         } else if (ifExpression.getAlternative().isPresent()) {
-            return evaluate(ifExpression.getAlternative().get());
+            return evaluate(ifExpression.getAlternative().get(), env);
         } else {
             return NULL;
         }
@@ -226,7 +243,7 @@ public class Eval {
         NullangObject result = null;
 
         for (Node n : nodes) {
-            result = evaluate(n);
+            result = evaluate(n, env);
             if (result.type() == ObjectType.RETURN_VALUE || result.type() == ObjectType.ERROR) {
                 return result;
             }
@@ -236,11 +253,11 @@ public class Eval {
     }
 
 
-    private NullangObject evalBlockStatement(BlockStatement block) {
+    private NullangObject evalBlockStatement(BlockStatement block, Env env) {
         NullangObject result = null;
 
         for (Node n : block.getStatements()) {
-            result = evaluate(n);
+            result = evaluate(n, env);
             if (result != null && result.type() == ObjectType.RETURN_VALUE)
                 return result;
             else if (result != null && result.type() == ObjectType.ERROR) {
