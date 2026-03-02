@@ -16,12 +16,11 @@ public class Eval {
     private final static NullangObject NULL = new NullObject();
     private final static NullangObject TRUE = new BooleanObject(true);
     private final static NullangObject FALSE = new BooleanObject(false);
-    private final Env env  = new Env();
 
     public NullangObject evaluate(Node node, Env evalEnv) {
         return switch (node) {
             case Program program ->
-                    evalProgram(program.statements);
+                    evalProgram(program.statements, evalEnv);
             case ExpressionStatement exp ->
                     evaluate(exp.expression(), evalEnv);
             case IntegerIdentifier intNode ->
@@ -29,7 +28,7 @@ public class Eval {
             case BooleanIdentifier booleanNode ->
                     nativeBoolToBooleanObject(booleanNode.value);
             case IfExpression ifExpression ->
-                    evaluateIfExpression(ifExpression);
+                    evaluateIfExpression(ifExpression, evalEnv);
             case BlockStatement blockStatement ->
                     evalBlockStatement(blockStatement, evalEnv);
             case ReturnStatement returnStatement -> {
@@ -44,7 +43,7 @@ public class Eval {
                 if (isError(value)) {
                     yield value;
                 }
-                env.define(letStatement.getName().getValue(), value);
+                evalEnv.define(letStatement.getName().getValue(), value);
                 yield value;
             }
             case Identifier identifier ->
@@ -77,8 +76,8 @@ public class Eval {
                 if (isError(function)) {
                     yield function;
                 }
-                var args = evalExpressions(callExpression.getArguments());
-                if (args.size() == 1 && isError(args.get(0))) {
+                var args = evalExpressions(callExpression.getArguments(), evalEnv);
+                if (args.size() == 1 && isError(args.getFirst())) {
                     yield args.getFirst();
                 }
                 yield applyFunction(function, args);
@@ -116,7 +115,7 @@ public class Eval {
         return env.get(identifier.getValue());
     }
 
-    private List<NullangObject> evalExpressions(List<Expression> expressions) {
+    private List<NullangObject> evalExpressions(List<Expression> expressions, Env env) {
         List<NullangObject> result = new ArrayList<>();
         for (Expression exp : expressions) {
             var evaluated = evaluate(exp, env);
@@ -128,7 +127,7 @@ public class Eval {
         return result;
     }
 
-    private NullangObject evaluateIfExpression(IfExpression ifExpression) {
+    private NullangObject evaluateIfExpression(IfExpression ifExpression, Env env) {
         var condition = evaluate(ifExpression.getCondition(), env);
         if (isError(condition)) {
             return condition;
@@ -239,7 +238,7 @@ public class Eval {
         }
     }
 
-    private NullangObject evalProgram(List<? extends Node> nodes) {
+    private NullangObject evalProgram(List<? extends Node> nodes, Env env) {
         NullangObject result = null;
 
         for (Node n : nodes) {

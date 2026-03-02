@@ -13,6 +13,7 @@ public class NullangApplication {
 
     public static void main(String[] args) throws IOException {
         Scanner sc = new Scanner(System.in);
+        var env = new Env();
 
         System.out.println("Enter code to parse:");
         while (true) {
@@ -24,7 +25,7 @@ public class NullangApplication {
 
             Program program = parseInput(input);
             var eval = new Eval();
-            var res = eval.evaluate(program, new Env());
+            var res = eval.evaluate(program, env);
             System.out.println("Evaluated: " + res.inspect());
         }
 
