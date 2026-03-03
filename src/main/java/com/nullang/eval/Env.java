@@ -28,7 +28,13 @@ public class Env {
     }
 
     public boolean contains(String name) {
-        return ENV.containsKey(name);
+        if (ENV.containsKey(name)) {
+            return true;
+        }
+        if (outer != null) {
+            return outer.contains(name);
+        }
+        return false;
     }
 
     public void setOuter(Env outer) {

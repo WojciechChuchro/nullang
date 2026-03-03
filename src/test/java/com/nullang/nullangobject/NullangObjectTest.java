@@ -137,7 +137,59 @@ public class NullangObjectTest {
 
     private static Stream<Arguments> functionStatements() {
         return Stream.of(
-                Arguments.of("test1", parseInput("let identity = fn(x) { x; }; identity(5);"), "asdf")
+                Arguments.of("identity function",
+                        parseInput("let identity = fn(x) { x; }; identity(5);"),
+                        new IntegerObject(5)),
+                Arguments.of("constant function",
+                        parseInput("let always = fn(x) { 42 }; always(0);"),
+                        new IntegerObject(42)),
+                Arguments.of("function with arithmetic body",
+                        parseInput("let double = fn(x) { x * 2 }; double(7);"),
+                        new IntegerObject(14)),
+                Arguments.of("function with multiple params",
+                        parseInput("let add = fn(x, y) { x + y }; add(3, 4);"),
+                        new IntegerObject(7)),
+                Arguments.of("function as argument",
+                        parseInput("let apply = fn(f, x) { f(x) }; let double = fn(x) { x * 2 }; apply(double, 5);"),
+                        new IntegerObject(10)),
+                Arguments.of("immediately invoked function",
+                        parseInput("fn(x) { x + 1 }(9);"),
+                        new IntegerObject(10)),
+                Arguments.of("function with conditional body",
+                        parseInput("let abs = fn(x) { if (x < 0) { 0 - x } else { x } }; abs(-5);"),
+                        new IntegerObject(5)),
+                Arguments.of("recursive-like chained calls",
+                        parseInput("let addThree = fn(a, b, c) { a + b + c }; addThree(1, 2, 3);"),
+                        new IntegerObject(6)),
+                Arguments.of("function returning result of another function",
+                        parseInput("let double = fn(x) { x * 2 }; let quad = fn(x) { double(double(x)) }; quad(3);"),
+                        new IntegerObject(12))
+        );
+    }
+
+    private static Stream<Arguments> closureStatements() {
+        return Stream.of(
+                Arguments.of("closure captures outer variable",
+                        parseInput("let a = fn(x) { fn(y) { x + y } }; let b = a(2); b(3);"),
+                        new IntegerObject(5)),
+                Arguments.of("closure captures multiple outer variables",
+                        parseInput("let a = fn(x, z) { fn(y) { x + y + z } }; let b = a(2, 10); b(3);"),
+                        new IntegerObject(15)),
+                Arguments.of("nested closures three levels deep",
+                        parseInput("let a = fn(x) { fn(y) { fn(z) { x + y + z } } }; let b = a(1); let c = b(2); c(3);"),
+                        new IntegerObject(6)),
+                Arguments.of("closure used immediately",
+                        parseInput("let a = fn(x) { fn(y) { x + y } }; a(10)(20);"),
+                        new IntegerObject(30)),
+                Arguments.of("closure over let binding",
+                        parseInput("let x = 10; let add = fn(y) { x + y }; add(5);"),
+                        new IntegerObject(15)),
+                Arguments.of("multiple closures from same factory",
+                        parseInput("let make = fn(x) { fn(y) { x + y } }; let addTwo = make(2); let addFive = make(5); addTwo(10) + addFive(10);"),
+                        new IntegerObject(27)),
+                Arguments.of("closure with arithmetic in outer scope",
+                        parseInput("let a = fn(x) { let doubled = x * 2; fn(y) { doubled + y } }; let b = a(3); b(4);"),
+                        new IntegerObject(10))
         );
     }
 
@@ -241,12 +293,27 @@ public class NullangObjectTest {
 
     @ParameterizedTest
     @MethodSource("functionStatements")
-    public void testFunctions(String name, Program program, String fnObject) {
+    public void testFunctions(String name, Program program, IntegerObject expected) {
         Eval e = new Eval();
 
-        var evaluated = e.evaluate(program, env);
-        assertThat(evaluated).isInstanceOf(IntegerObject.class);
-        var val = (IntegerObject) evaluated;
-        assertThat(val.inspect()).isEqualTo("5");
+        var evaluated = e.evaluate(program, new Env());
+
+        assertThat(evaluated)
+                .isInstanceOf(IntegerObject.class)
+                .extracting(NullangObject::inspect)
+                .isEqualTo(expected.inspect());
+    }
+
+    @ParameterizedTest
+    @MethodSource("closureStatements")
+    public void testClosures(String name, Program program, IntegerObject expected) {
+        Eval e = new Eval();
+
+        var evaluated = e.evaluate(program, new Env());
+
+        assertThat(evaluated)
+                .isInstanceOf(IntegerObject.class)
+                .extracting(NullangObject::inspect)
+                .isEqualTo(expected.inspect());
     }
 }
