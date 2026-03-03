@@ -1,35 +1,17 @@
 
-package com.nullang.ast.statement;
+package com.nullang.ast.expression;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.nullang.ast.Expression;
 import com.nullang.ast.Identifier;
+import com.nullang.ast.statement.BlockStatement;
 import com.nullang.token.Token;
 
-public class FnStatement implements Expression {
-    private final Token token;
-    private final List<Identifier> parameters;
-    private final BlockStatement body;
-
-    public Token getToken() {
-        return token;
-    }
-
-    public List<Identifier> getParameters() {
-        return parameters;
-    }
-
-    public BlockStatement getBody() {
-        return body;
-    }
-
-    public FnStatement(Token token, List<Identifier> parameters, BlockStatement body) {
-        this.token = token;
-        this.parameters = parameters;
-        this.body = body;
-    }
+public record FnExpression(
+        Token token,
+        List<Identifier> parameters,
+        BlockStatement body) implements Expression {
 
     @Override
     public String toString() {

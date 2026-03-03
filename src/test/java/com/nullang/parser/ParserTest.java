@@ -11,9 +11,10 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 
+import com.nullang.ast.expression.BooleanIdentifier;
+import com.nullang.ast.expression.FnExpression;
 import org.junit.jupiter.api.Test;
 
-import com.nullang.ast.BooleanIdentifier;
 import com.nullang.ast.Identifier;
 import com.nullang.ast.IntegerIdentifier;
 import com.nullang.ast.Program;
@@ -24,7 +25,6 @@ import com.nullang.ast.expression.InfixExpression;
 import com.nullang.ast.expression.PrefixExpression;
 import com.nullang.ast.statement.BlockStatement;
 import com.nullang.ast.statement.ExpressionStatement;
-import com.nullang.ast.statement.FnStatement;
 import com.nullang.ast.statement.LetStatement;
 import com.nullang.ast.statement.ReturnStatement;
 import com.nullang.lexer.Lexer;
@@ -52,7 +52,7 @@ public class ParserTest {
 
     private void testBooleanLiteral(BooleanIdentifier booleanLiteral, boolean value) {
         System.out.println(booleanLiteral.getTokenLiteral());
-        assertThat(booleanLiteral.value).isEqualTo(value);
+        assertThat(booleanLiteral.getValue()).isEqualTo(value);
         assertThat(booleanLiteral.getTokenLiteral()).isEqualTo(String.valueOf(value));
     }
 
@@ -492,18 +492,18 @@ public class ParserTest {
                 .allSatisfy(stmt -> assertThat(stmt).isInstanceOf(ExpressionStatement.class));
         ExpressionStatement expressionStatement = (ExpressionStatement) program.statements.get(0);
 
-        assertThat(expressionStatement.expression()).isInstanceOf(FnStatement.class);
-        FnStatement fnStatement = (FnStatement) expressionStatement.expression();
-        assertThat(fnStatement.getToken().type()).isEqualTo(TokenType.FUNCTION);
-        assertThat(fnStatement.getToken().literal()).isEqualTo("fn");
-        assertThat(fnStatement.getBody()).isInstanceOf(BlockStatement.class);
-        assertThat(fnStatement.getBody().toString()).isEqualTo("(x + y)");
+        assertThat(expressionStatement.expression()).isInstanceOf(FnExpression.class);
+        FnExpression fnExpression = (FnExpression) expressionStatement.expression();
+        assertThat(fnExpression.token().type()).isEqualTo(TokenType.FUNCTION);
+        assertThat(fnExpression.token().literal()).isEqualTo("fn");
+        assertThat(fnExpression.body()).isInstanceOf(BlockStatement.class);
+        assertThat(fnExpression.body().toString()).isEqualTo("(x + y)");
 
-        assertThat(fnStatement.toString()).isEqualTo("fn(x, y) {(x + y)}");
+        assertThat(fnExpression.toString()).isEqualTo("fn(x, y) {(x + y)}");
 
-        assertThat(fnStatement.getParameters()).hasSize(2);
-        assertThat(fnStatement.getParameters().get(0).toString()).isEqualTo("x");
-        assertThat(fnStatement.getParameters().get(1).toString()).isEqualTo("y");
+        assertThat(fnExpression.parameters()).hasSize(2);
+        assertThat(fnExpression.parameters().get(0).toString()).isEqualTo("x");
+        assertThat(fnExpression.parameters().get(1).toString()).isEqualTo("y");
     }
 
     @Test
@@ -520,15 +520,15 @@ public class ParserTest {
                 .allSatisfy(stmt -> assertThat(stmt).isInstanceOf(ExpressionStatement.class));
         ExpressionStatement expressionStatement = (ExpressionStatement) program.statements.get(0);
 
-        assertThat(expressionStatement.expression()).isInstanceOf(FnStatement.class);
-        FnStatement fnStatement = (FnStatement) expressionStatement.expression();
-        assertThat(fnStatement.getToken().type()).isEqualTo(TokenType.FUNCTION);
-        assertThat(fnStatement.getToken().literal()).isEqualTo("fn");
-        assertThat(fnStatement.getBody()).isInstanceOf(BlockStatement.class);
-        assertThat(fnStatement.getBody().toString()).isEqualTo("(1 + 2)");
-        assertThat(fnStatement.toString()).isEqualTo("fn() {(1 + 2)}");
+        assertThat(expressionStatement.expression()).isInstanceOf(FnExpression.class);
+        FnExpression fnExpression = (FnExpression) expressionStatement.expression();
+        assertThat(fnExpression.token().type()).isEqualTo(TokenType.FUNCTION);
+        assertThat(fnExpression.token().literal()).isEqualTo("fn");
+        assertThat(fnExpression.body()).isInstanceOf(BlockStatement.class);
+        assertThat(fnExpression.body().toString()).isEqualTo("(1 + 2)");
+        assertThat(fnExpression.toString()).isEqualTo("fn() {(1 + 2)}");
 
-        assertThat(fnStatement.getParameters()).hasSize(0);
+        assertThat(fnExpression.parameters()).hasSize(0);
     }
 
     @Test
@@ -547,14 +547,14 @@ public class ParserTest {
         assertThat(expressionStatement.expression()).isInstanceOf(CallExpression.class);
 
         CallExpression callExpression = (CallExpression) expressionStatement.expression();
-        assertThat(callExpression.getFunction().toString()).isEqualTo("add");
-        assertThat(callExpression.getFunction()).isInstanceOf(Identifier.class);
+        assertThat(callExpression.function().toString()).isEqualTo("add");
+        assertThat(callExpression.function()).isInstanceOf(Identifier.class);
         assertThat(callExpression.toString()).isEqualTo("add(1, (2 * 3), (4 + 5))");
-        assertThat(callExpression.getArguments().get(0).toString()).isEqualTo("1");
-        assertThat(callExpression.getArguments().get(1).toString()).isEqualTo("(2 * 3)");
-        assertThat(callExpression.getArguments().get(2).toString()).isEqualTo("(4 + 5)");
+        assertThat(callExpression.arguments().get(0).toString()).isEqualTo("1");
+        assertThat(callExpression.arguments().get(1).toString()).isEqualTo("(2 * 3)");
+        assertThat(callExpression.arguments().get(2).toString()).isEqualTo("(4 + 5)");
 
-        assertThat(callExpression.getArguments()).hasSize(3);
+        assertThat(callExpression.arguments()).hasSize(3);
     }
 
     @Test
@@ -573,13 +573,13 @@ public class ParserTest {
         assertThat(expressionStatement.expression()).isInstanceOf(CallExpression.class);
 
         CallExpression callExpression = (CallExpression) expressionStatement.expression();
-        assertThat(callExpression.getFunction().toString()).isEqualTo("fn(x, y) {(x + y)}");
-        assertThat(callExpression.getFunction()).isInstanceOf(FnStatement.class);
+        assertThat(callExpression.function().toString()).isEqualTo("fn(x, y) {(x + y)}");
+        assertThat(callExpression.function()).isInstanceOf(FnExpression.class);
         assertThat(callExpression.toString()).isEqualTo("fn(x, y) {(x + y)}(2, 3)");
-        assertThat(callExpression.getArguments().get(0).toString()).isEqualTo("2");
-        assertThat(callExpression.getArguments().get(1).toString()).isEqualTo("3");
+        assertThat(callExpression.arguments().get(0).toString()).isEqualTo("2");
+        assertThat(callExpression.arguments().get(1).toString()).isEqualTo("3");
 
-        assertThat(callExpression.getArguments()).hasSize(2);
+        assertThat(callExpression.arguments()).hasSize(2);
     }
 
     @ParameterizedTest

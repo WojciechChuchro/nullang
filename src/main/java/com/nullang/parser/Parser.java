@@ -1,7 +1,10 @@
 package com.nullang.parser;
 
 import com.nullang.ast.*;
+import com.nullang.ast.expression.BooleanIdentifier;
 import com.nullang.ast.expression.CallExpression;
+import com.nullang.ast.expression.Expression;
+import com.nullang.ast.expression.FnExpression;
 import com.nullang.ast.expression.IfExpression;
 import com.nullang.ast.expression.InfixExpression;
 import com.nullang.ast.expression.PrefixExpression;
@@ -161,7 +164,7 @@ public class Parser implements AutoCloseable {
 
         BlockStatement body = parseBlockStatement();
 
-        return new FnStatement(cur, parameters, body);
+        return new FnExpression(cur, parameters, body);
     }
 
     private List<Identifier> parseParameters() {

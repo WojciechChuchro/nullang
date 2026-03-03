@@ -1,5 +1,6 @@
 package com.nullang.ast;
 
+import com.nullang.ast.expression.Expression;
 import com.nullang.token.Token;
 
 public class Identifier implements Expression {

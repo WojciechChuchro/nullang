@@ -99,7 +99,7 @@ public class Lexer implements AutoCloseable {
             default:
                 if (isLetterOrUnderscore((char) currentChar)) {
                     String identifier = readIdentifier();
-                    return lockupIdentifier(identifier);
+                    return lookupIdentifier(identifier);
                 } else if (Character.isDigit(currentChar)) {
                     String number = readNumber();
                     return new Token(TokenType.INT, number);
@@ -144,7 +144,7 @@ public class Lexer implements AutoCloseable {
         return sb.toString();
     }
 
-    private Token lockupIdentifier(String identifier) {
+    private Token lookupIdentifier(String identifier) {
         TokenType type = keywords.getOrDefault(identifier, TokenType.IDENT);
         return new Token(type, identifier);
     }

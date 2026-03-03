@@ -1,7 +1,10 @@
 package com.nullang.eval;
 
 import com.nullang.ast.*;
+import com.nullang.ast.expression.BooleanIdentifier;
 import com.nullang.ast.expression.CallExpression;
+import com.nullang.ast.expression.Expression;
+import com.nullang.ast.expression.FnExpression;
 import com.nullang.ast.expression.IfExpression;
 import com.nullang.ast.expression.InfixExpression;
 import com.nullang.ast.expression.PrefixExpression;
@@ -26,7 +29,7 @@ public class Eval {
             case IntegerIdentifier intNode ->
                     new IntegerObject(intNode.getValue());
             case BooleanIdentifier booleanNode ->
-                    nativeBoolToBooleanObject(booleanNode.value);
+                    nativeBoolToBooleanObject(booleanNode.getValue());
             case IfExpression ifExpression ->
                     evaluateIfExpression(ifExpression, evalEnv);
             case BlockStatement blockStatement ->
@@ -66,17 +69,17 @@ public class Eval {
                 }
                 yield evaluatePrefixExpression(pe.getOperator(), right);
             }
-            case FnStatement fn -> {
-                var params = fn.getParameters();
-                var body = fn.getBody();
+            case FnExpression fn -> {
+                var params = fn.parameters();
+                var body = fn.body();
                 yield new FunctionObject(params, body, evalEnv);
             }
             case CallExpression callExpression -> {
-                var function = evaluate(callExpression.getFunction(), evalEnv);
+                var function = evaluate(callExpression.function(), evalEnv);
                 if (isError(function)) {
                     yield function;
                 }
-                var args = evalExpressions(callExpression.getArguments(), evalEnv);
+                var args = evalExpressions(callExpression.arguments(), evalEnv);
                 if (args.size() == 1 && isError(args.getFirst())) {
                     yield args.getFirst();
                 }

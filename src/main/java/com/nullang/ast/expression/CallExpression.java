@@ -1,21 +1,14 @@
 package com.nullang.ast.expression;
 
-import com.nullang.ast.Expression;
 import com.nullang.token.Token;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class CallExpression implements Expression {
-    private final Token token;
-    private final Expression function;
-    private final List<Expression> arguments;
-
-    public CallExpression(Token token, Expression function, List<Expression> arguments) {
-        this.token = token;
-        this.function = function;
-        this.arguments = arguments;
-    }
+public record CallExpression(
+        Token token,
+        Expression function,
+        List<Expression> arguments) implements Expression {
 
     @Override
     public String toString() {
@@ -33,17 +26,5 @@ public class CallExpression implements Expression {
     public String getTokenLiteral() {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'tokenLiteral'");
-    }
-
-    public Token getToken() {
-        return token;
-    }
-
-    public Expression getFunction() {
-        return function;
-    }
-
-    public List<Expression> getArguments() {
-        return arguments;
     }
 }

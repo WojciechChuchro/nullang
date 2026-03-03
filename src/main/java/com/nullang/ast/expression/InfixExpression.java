@@ -1,6 +1,5 @@
 package com.nullang.ast.expression;
 
-import com.nullang.ast.Expression;
 import com.nullang.token.Token;
 
 public class InfixExpression implements Expression {

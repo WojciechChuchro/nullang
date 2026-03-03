@@ -1,6 +1,6 @@
 package com.nullang.ast.statement;
 
-import com.nullang.ast.Expression;
+import com.nullang.ast.expression.Expression;
 import com.nullang.token.Token;
 
 public record ExpressionStatement(
