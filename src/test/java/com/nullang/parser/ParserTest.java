@@ -13,6 +13,7 @@ import java.io.StringReader;
 
 import com.nullang.ast.expression.BooleanIdentifier;
 import com.nullang.ast.expression.FnExpression;
+import com.nullang.ast.statement.StringIdentifier;
 import org.junit.jupiter.api.Test;
 
 import com.nullang.ast.Identifier;
@@ -588,6 +589,7 @@ public class ParserTest {
             "let y = 10;, y, 10",
             "let foobar = 838383;, foobar, 838383"
     })
+
     void testLetStatementsParameterized(String input, String expectedIdentifier, int expectedValue) throws IOException {
         Program program = parseInput(input);
 
@@ -601,5 +603,23 @@ public class ParserTest {
         assertThat(letStmt.getName().toString()).isEqualTo(expectedIdentifier);
         assertThat(letStmt.getValue()).isInstanceOf(IntegerIdentifier.class);
         assertThat(((IntegerIdentifier) letStmt.getValue()).getValue()).isEqualTo(expectedValue);
+    }
+
+    @Test
+    void TestStringIdentifier() throws IOException {
+        Program program = parseInput(
+                "\"Hello world\""
+);
+
+        assertThat(program).isNotNull();
+        assertThat(program.statements).hasSize(1);
+
+        Statement stmt = program.statements.getFirst();
+        assertThat(stmt).isInstanceOf(ExpressionStatement.class);
+
+        var stringIdentifier = (ExpressionStatement) stmt;
+        var token = stringIdentifier.token();
+        assertThat(token.type()).isEqualTo(TokenType.STRING);
+        assertThat((token.literal())).isEqualTo("Hello world");
     }
 }

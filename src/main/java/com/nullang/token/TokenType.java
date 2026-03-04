@@ -10,6 +10,7 @@ public enum TokenType {
     INT,
     TRUE,
     FALSE,
+    STRING,
 
     // Arithmetic Operators
     PLUS,

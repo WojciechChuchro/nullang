@@ -122,7 +122,8 @@ public class NullangObjectTest {
                 Arguments.of(parseInput("true + false"), "unknown operator: BOOLEAN + BOOLEAN"),
                 Arguments.of(parseInput("5; true + false; 5;"), "unknown operator: BOOLEAN + BOOLEAN"),
                 Arguments.of(parseInput("if (10 > 1) { true + false; }"), "unknown operator: BOOLEAN + BOOLEAN"),
-                Arguments.of(parseInput("foobar"), "identifier not found: foobar")
+                Arguments.of(parseInput("foobar"), "identifier not found: foobar"),
+                Arguments.of(parseInput("\"hello\" - \"world\""), "unknown operator: STRING - STRING")
         );
     }
 
@@ -190,6 +191,19 @@ public class NullangObjectTest {
                 Arguments.of("closure with arithmetic in outer scope",
                         parseInput("let a = fn(x) { let doubled = x * 2; fn(y) { doubled + y } }; let b = a(3); b(4);"),
                         new IntegerObject(10))
+        );
+    }
+
+    private static Stream<Arguments> stringStatements() {
+        return Stream.of(
+                Arguments.of("string statements",
+                        parseInput("\"hello world\""),
+                        new StringObject("hello world")
+                ),
+                Arguments.of("concatenation",
+                        parseInput("\"hello\" + \" \" + \"world\" "),
+                        new StringObject("hello world")
+                )
         );
     }
 
@@ -313,6 +327,19 @@ public class NullangObjectTest {
 
         assertThat(evaluated)
                 .isInstanceOf(IntegerObject.class)
+                .extracting(NullangObject::inspect)
+                .isEqualTo(expected.inspect());
+    }
+
+    @ParameterizedTest
+    @MethodSource("stringStatements")
+    public void testString(String name, Program program, StringObject expected) {
+        Eval e = new Eval();
+
+        var evaluated = e.evaluate(program, new Env());
+
+        assertThat(evaluated)
+                .isInstanceOf(StringObject.class)
                 .extracting(NullangObject::inspect)
                 .isEqualTo(expected.inspect());
     }

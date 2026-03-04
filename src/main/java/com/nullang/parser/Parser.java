@@ -23,6 +23,7 @@ public class Parser implements AutoCloseable {
     private Token curToken;
     private Token peekToken;
     private final Map<TokenType, Supplier<Expression>> prefixParseFns = Map.ofEntries(
+            Map.entry(TokenType.STRING, this::parseStringIdentifier),
             Map.entry(TokenType.IDENT, this::parseIdentifier),
             Map.entry(TokenType.INT, this::parseInteger),
             Map.entry(TokenType.BANG, this::parsePrefixExpression),
@@ -282,6 +283,10 @@ public class Parser implements AutoCloseable {
 
     private Expression parseIdentifier() {
         return new Identifier(curToken, curToken.literal());
+    }
+
+    private Expression parseStringIdentifier() {
+        return new StringIdentifier(curToken, curToken.literal());
     }
 
     private Optional<Expression> parseExpression(int lowest) {

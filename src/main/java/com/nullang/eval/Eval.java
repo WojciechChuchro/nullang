@@ -28,6 +28,8 @@ public class Eval {
                     evaluate(exp.expression(), evalEnv);
             case IntegerIdentifier intNode ->
                     new IntegerObject(intNode.getValue());
+            case StringIdentifier stringIdentifier ->
+                    new StringObject(stringIdentifier.getValue());
             case BooleanIdentifier booleanNode ->
                     nativeBoolToBooleanObject(booleanNode.getValue());
             case IfExpression ifExpression ->
@@ -175,6 +177,12 @@ public class Eval {
             return nativeBoolToBooleanObject(left == right);
         } else if (Objects.equals(operator, "!=")) {
             return nativeBoolToBooleanObject(left != right);
+        } else if (left.type() == ObjectType.STRING && right.type() == ObjectType.STRING) {
+            if (operator.equals("+")) {
+                return new StringObject(left.inspect() + right.inspect());
+            }
+
+            return new ErrorObject("unknown operator: " + left.type() + " " + operator + " " + right.type());
         } else if (left.type() != right.type()) {
             return new ErrorObject("type mismatch: " + left.type() + " " + operator + " " + right.type());
         }

@@ -66,6 +66,11 @@ public class Lexer implements AutoCloseable {
             case ',':
                 token = new Token(TokenType.COMMA, ",");
                 break;
+            case '\"':
+                var literal = readString();
+                token = new Token(TokenType.STRING, literal);
+
+                break;
             case '=':
                 if (peekedChar == '=') {
                     readChar();
@@ -144,6 +149,18 @@ public class Lexer implements AutoCloseable {
         return sb.toString();
     }
 
+    private String readString() {
+        StringBuilder sb = new StringBuilder();
+        readChar();
+
+        while (!Character.toString(currentChar).equals("\"") && currentChar != -1) {
+            sb.append((char) currentChar);
+            readChar();
+        }
+
+        return sb.toString();
+    }
+
     private Token lookupIdentifier(String identifier) {
         TokenType type = keywords.getOrDefault(identifier, TokenType.IDENT);
         return new Token(type, identifier);
@@ -158,6 +175,7 @@ public class Lexer implements AutoCloseable {
             readChar();
         }
     }
+
 
     @Override
     public void close() {

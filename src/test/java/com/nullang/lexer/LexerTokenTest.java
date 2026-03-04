@@ -35,11 +35,12 @@ public class LexerTokenTest {
 
     private static Stream<Arguments> correctInput() {
         return Stream.of(
-                // Special Tokens
-                Arguments.of("should parse end of file",
-                        "",
+                // Strings
+                Arguments.of("should parse string literals",
+                        "\"Hello world\" \"foobar\"",
                         List.of(
-                                new Token(TokenType.EOF, "")
+                                new Token(TokenType.STRING, "Hello world"),
+                                new Token(TokenType.STRING, "foobar")
                         )),
                 Arguments.of("should parse illegal characters",
                         "& ^ % @ #",
