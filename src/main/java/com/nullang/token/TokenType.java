@@ -44,4 +44,7 @@ public enum TokenType {
     IF,
     ELSE,
     RETURN,
+
+    LBRACKET,
+    RBRACKET,
 }

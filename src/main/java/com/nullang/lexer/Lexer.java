@@ -48,6 +48,13 @@ public class Lexer implements AutoCloseable {
             case '}':
                 token = new Token(TokenType.RBRACE, "}");
                 break;
+
+            case '[':
+                token = new Token(TokenType.LBRACKET, "[");
+                break;
+            case ']':
+                token = new Token(TokenType.RBRACKET, "]");
+                break;
             case '(':
                 token = new Token(TokenType.LPAREN, "(");
                 break;

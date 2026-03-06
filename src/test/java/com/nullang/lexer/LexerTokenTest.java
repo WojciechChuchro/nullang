@@ -42,6 +42,18 @@ public class LexerTokenTest {
                                 new Token(TokenType.STRING, "Hello world"),
                                 new Token(TokenType.STRING, "foobar")
                         )),
+
+                Arguments.of("should parse array",
+                        "[1, 2];",
+                        List.of(
+                                new Token(TokenType.LBRACKET, "["),
+                                new Token(TokenType.INT, "1"),
+                                new Token(TokenType.COMMA, ","),
+                                new Token(TokenType.INT, "2"),
+                                new Token(TokenType.RBRACKET, "]"),
+                                new Token(TokenType.SEMICOLON, ";"),
+                                new Token(TokenType.EOF, "")
+                        )),
                 Arguments.of("should parse illegal characters",
                         "& ^ % @ #",
                         List.of(
