@@ -34,6 +34,13 @@ public class Eval {
                             default ->
                                     new ErrorObject("argument to `len` not supported, got " + args.get(0).type());
                         };
+                    },
+                    "puts", args -> {
+                        for (NullangObject arg : args) {
+                            System.out.println(arg.inspect());
+                        }
+
+                        return NULL;
                     }
             );
 

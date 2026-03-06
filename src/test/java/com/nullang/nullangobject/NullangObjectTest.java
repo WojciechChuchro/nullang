@@ -13,6 +13,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.List;
@@ -220,6 +222,27 @@ public class NullangObjectTest {
         );
     }
 
+    private static Stream<Arguments> puts() {
+        return Stream.of(
+                Arguments.of("puts single integer",
+                        parseInput("puts(1);"),
+                        "1"
+                ),
+                Arguments.of("puts no arguments",
+                        parseInput("puts();"),
+                        ""
+                ),
+                Arguments.of("puts multiple arguments",
+                        parseInput("puts(\"hello\", \"world\", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10);"),
+                        "hello\nworld\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10"
+                ),
+                Arguments.of("puts boolean false",
+                        parseInput("puts(false);"),
+                        "false"
+                )
+        );
+    }
+
     private static Stream<Arguments> builtinErrors() {
         return Stream.of(
                 Arguments.of("len with integer argument",
@@ -402,5 +425,26 @@ public class NullangObjectTest {
                 .isInstanceOf(ErrorObject.class)
                 .extracting(NullangObject::inspect)
                 .isEqualTo(expected);
+    }
+
+    @ParameterizedTest
+    @MethodSource("puts")
+    public void testPuts(String name, Program program, String expected) {
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    PrintStream originalOut = System.out;
+
+    System.setOut(new PrintStream(outputStream));
+
+    try {
+        Eval e = new Eval();
+        var evaluated = e.evaluate(program, new Env());
+
+        String printed = outputStream.toString().replace("\r\n", "\n").trim();
+
+        assertThat(printed).isEqualTo(expected);
+
+    } finally {
+        System.setOut(originalOut);
+    }
     }
 }
