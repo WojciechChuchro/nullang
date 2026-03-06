@@ -207,6 +207,40 @@ public class NullangObjectTest {
         );
     }
 
+    private static Stream<Arguments> builtin() {
+        return Stream.of(
+                Arguments.of("len of empty string",
+                        parseInput("len(\"\")"),
+                        "0"
+                ),
+                Arguments.of("len of four",
+                        parseInput("len(\"four\")"),
+                        "4"
+                )
+        );
+    }
+
+    private static Stream<Arguments> builtinErrors() {
+        return Stream.of(
+                Arguments.of("len with integer argument",
+                        parseInput("len(1)"),
+                        "ERROR: argument to `len` not supported, got INTEGER"
+                ),
+                Arguments.of("len with integer argument",
+                        parseInput("len(true)"),
+                        "ERROR: argument to `len` not supported, got BOOLEAN"
+                ),
+                Arguments.of("len with integer argument",
+                        parseInput("len(false)"),
+                        "ERROR: argument to `len` not supported, got BOOLEAN"
+                ),
+                Arguments.of("len with integer argument",
+                        parseInput("len(\"wtf\", \"hello\")"),
+                        "ERROR: wrong number of arguments. got 2 expected 1"
+                )
+        );
+    }
+
     private static Program parseInput(String input) {
         Reader reader = new StringReader(input);
         try (Lexer lexer = new Lexer(reader);
@@ -342,5 +376,31 @@ public class NullangObjectTest {
                 .isInstanceOf(StringObject.class)
                 .extracting(NullangObject::inspect)
                 .isEqualTo(expected.inspect());
+    }
+
+    @ParameterizedTest
+    @MethodSource("builtin")
+    public void testBuiltin(String name, Program program, String expected) {
+        Eval e = new Eval();
+
+        var evaluated = e.evaluate(program, new Env());
+
+        assertThat(evaluated)
+                .isInstanceOf(IntegerObject.class)
+                .extracting(NullangObject::inspect)
+                .isEqualTo(expected);
+    }
+
+    @ParameterizedTest
+    @MethodSource("builtinErrors")
+    public void testBuiltinErrors(String name, Program program, String expected) {
+        Eval e = new Eval();
+
+        var evaluated = e.evaluate(program, new Env());
+
+        assertThat(evaluated)
+                .isInstanceOf(ErrorObject.class)
+                .extracting(NullangObject::inspect)
+                .isEqualTo(expected);
     }
 }

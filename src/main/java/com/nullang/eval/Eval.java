@@ -13,12 +13,29 @@ import com.nullang.nullangobject.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 
 public class Eval {
     private final static NullangObject NULL = new NullObject();
     private final static NullangObject TRUE = new BooleanObject(true);
     private final static NullangObject FALSE = new BooleanObject(false);
+    private static final Map<String, Function<List<NullangObject>, NullangObject>> builtInFunctions =
+            Map.of(
+                    "len", args -> {
+                        if (args.size() != 1) {
+                            return new ErrorObject("wrong number of arguments. got " + args.size() + " expected 1");
+                        }
+
+                        return switch (args.getFirst().type()) {
+                            case STRING ->
+                                    new IntegerObject(args.getFirst().inspect().length());
+                            default ->
+                                    new ErrorObject("argument to `len` not supported, got " + args.get(0).type());
+                        };
+                    }
+            );
 
     public NullangObject evaluate(Node node, Env evalEnv) {
         return switch (node) {
@@ -100,6 +117,8 @@ public class Eval {
                 return rv.value();
             }
             return evaluated;
+        } else if (function instanceof BuiltinFunctionObject fn) {
+            return fn.call(args);
         } else {
             return new ErrorObject("not a function: " + function.type());
         }
@@ -114,10 +133,15 @@ public class Eval {
     }
 
     private NullangObject evalIdentifier(Identifier identifier, Env env) {
-        if (!env.contains(identifier.getValue())) {
-            return new ErrorObject("identifier not found: " + identifier.getValue());
+        if (env.contains(identifier.getValue())) {
+            return env.get(identifier.getValue());
         }
-        return env.get(identifier.getValue());
+
+        if (builtInFunctions.containsKey(identifier.getValue())) {
+            return new BuiltinFunctionObject(builtInFunctions.get(identifier.getValue()));
+        }
+
+        return new ErrorObject("identifier not found: " + identifier.getValue());
     }
 
     private List<NullangObject> evalExpressions(List<Expression> expressions, Env env) {
