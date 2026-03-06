@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 
+import com.nullang.ast.expression.ArrayExpression;
 import com.nullang.ast.expression.BooleanIdentifier;
 import com.nullang.ast.expression.FnExpression;
 import com.nullang.ast.statement.StringIdentifier;
@@ -38,7 +39,7 @@ public class ParserTest {
     private Program parseInput(String input) throws IOException {
         Reader reader = new StringReader(input);
         try (Lexer lexer = new Lexer(reader);
-                Parser parser = new Parser(lexer)) {
+             Parser parser = new Parser(lexer)) {
             return parser.parseProgram();
         }
     }
@@ -46,7 +47,7 @@ public class ParserTest {
     private ParserException parseInputExpectingException(String input) {
         Reader reader = new StringReader(input);
         try (Lexer lexer = new Lexer(reader);
-                Parser parser = new Parser(lexer)) {
+             Parser parser = new Parser(lexer)) {
             return assertThrowsExactly(ParserException.class, parser::parseProgram);
         }
     }
@@ -62,8 +63,8 @@ public class ParserTest {
         Program program =
                 parseInput(
                         """
-                        let x = 5;
-                        """);
+                                let x = 5;
+                                """);
 
         assertNotNull(program);
         assertEquals(1, program.statements.size());
@@ -78,15 +79,16 @@ public class ParserTest {
         assertThat(((IntegerIdentifier) ls.getValue()).getValue()).isEqualTo(5);
         assertThat(((IntegerIdentifier) ls.getValue()).toString()).isEqualTo("5");
     }
+
     @Test
     void testeLetStatements() throws IOException {
         Program program =
                 parseInput(
                         """
-                        let x = 5;
-                        let y = 10;
-                        let foobar = 838383;
-                        """);
+                                let x = 5;
+                                let y = 10;
+                                let foobar = 838383;
+                                """);
 
         assertNotNull(program);
         assertEquals(3, program.statements.size());
@@ -104,15 +106,15 @@ public class ParserTest {
         Program program =
                 parseInput(
                         """
-                        return 5;
-                        return true;
-                        """);
+                                return 5;
+                                return true;
+                                """);
 
         assertNotNull(program);
         assertEquals(2, program.statements.size());
 
         assertInstanceOf(ReturnStatement.class, program.statements.get(0));
-        ReturnStatement rs =(ReturnStatement) program.statements.get(0);
+        ReturnStatement rs = (ReturnStatement) program.statements.get(0);
         ReturnStatement exp = (ReturnStatement) rs;
 
         assertThat(exp.getReturnValue()).isInstanceOf(IntegerIdentifier.class);
@@ -121,7 +123,7 @@ public class ParserTest {
         assertThat(in.toString()).isEqualTo("5");
 
         assertTrue(program.statements.get(1) instanceof ReturnStatement);
-        ReturnStatement rs2 =(ReturnStatement) program.statements.get(1);
+        ReturnStatement rs2 = (ReturnStatement) program.statements.get(1);
         ReturnStatement exp2 = (ReturnStatement) rs2;
         assertThat(exp2.getReturnValue()).isInstanceOf(BooleanIdentifier.class);
         BooleanIdentifier bn = (BooleanIdentifier) exp2.getReturnValue();
@@ -178,9 +180,9 @@ public class ParserTest {
         Program program =
                 parseInput(
                         """
-                        foobar;
-                        5;
-                        """);
+                                foobar;
+                                5;
+                                """);
 
         assertNotNull(program);
         assertEquals(2, program.statements.size());
@@ -248,9 +250,9 @@ public class ParserTest {
         Program program =
                 parseInput(
                         """
-                        !5;
-                        -5;
-                        """);
+                                !5;
+                                -5;
+                                """);
 
         assertNotNull(program);
         assertEquals(2, program.statements.size());
@@ -292,15 +294,15 @@ public class ParserTest {
         Program program =
                 parseInput(
                         """
-                            5 + 4;
-                            6 - 5;
-                            5 * 4;
-                            5 / 4;
-                            5 > 4;
-                            5 < 4;
-                            5 == 4;
-                            5 != 4;
-                        """);
+                                    5 + 4;
+                                    6 - 5;
+                                    5 * 4;
+                                    5 / 4;
+                                    5 > 4;
+                                    5 < 4;
+                                    5 == 4;
+                                    5 != 4;
+                                """);
 
         assertNotNull(program);
         assertEquals(8, program.statements.size());
@@ -323,8 +325,8 @@ public class ParserTest {
         Program program =
                 parseInput(
                         """
-                            2 + 2 * 2;
-                        """);
+                                    2 + 2 * 2;
+                                """);
 
         assertNotNull(program);
         assertEquals(1, program.statements.size());
@@ -337,8 +339,8 @@ public class ParserTest {
         Program program =
                 parseInput(
                         """
-                        true;
-                        """);
+                                true;
+                                """);
 
         assertNotNull(program);
         assertEquals(1, program.statements.size());
@@ -355,8 +357,8 @@ public class ParserTest {
         Program program =
                 parseInput(
                         """
-                        !true;
-                        """);
+                                !true;
+                                """);
 
         assertThat(program).isNotNull();
         assertThat(program.statements)
@@ -378,8 +380,8 @@ public class ParserTest {
         Program program =
                 parseInput(
                         """
-                        false == true;
-                        """);
+                                false == true;
+                                """);
 
         assertThat(program).isNotNull();
         assertThat(program.statements)
@@ -403,8 +405,8 @@ public class ParserTest {
         Program program =
                 parseInput(
                         """
-                            1 + (2 + 3) + 4
-                        """);
+                                    1 + (2 + 3) + 4
+                                """);
 
         assertThat(program).isNotNull();
         assertThat(program.statements)
@@ -418,8 +420,8 @@ public class ParserTest {
         Program program =
                 parseInput(
                         """
-                            if (x < y) { x }
-                        """);
+                                    if (x < y) { x }
+                                """);
 
         assertThat(program).isNotNull();
         assertThat(program.statements)
@@ -448,8 +450,8 @@ public class ParserTest {
         Program program =
                 parseInput(
                         """
-                            if (x < y) { x } else { y }
-                        """);
+                                    if (x < y) { x } else { y }
+                                """);
 
         assertThat(program).isNotNull();
         assertThat(program.statements)
@@ -484,8 +486,8 @@ public class ParserTest {
         Program program =
                 parseInput(
                         """
-                            fn(x, y) { x + y }
-                        """);
+                                    fn(x, y) { x + y }
+                                """);
 
         assertThat(program).isNotNull();
         assertThat(program.statements)
@@ -512,8 +514,8 @@ public class ParserTest {
         Program program =
                 parseInput(
                         """
-                            fn() { 1 + 2 }
-                        """);
+                                    fn() { 1 + 2 }
+                                """);
 
         assertThat(program).isNotNull();
         assertThat(program.statements)
@@ -537,8 +539,8 @@ public class ParserTest {
         Program program =
                 parseInput(
                         """
-                            add(1, 2 * 3, 4 + 5);
-                        """);
+                                    add(1, 2 * 3, 4 + 5);
+                                """);
 
         assertThat(program).isNotNull();
         assertThat(program.statements)
@@ -563,8 +565,8 @@ public class ParserTest {
         Program program =
                 parseInput(
                         """
-                            fn(x, y) { x + y; }(2, 3)
-                        """);
+                                    fn(x, y) { x + y; }(2, 3)
+                                """);
 
         assertThat(program).isNotNull();
         assertThat(program.statements)
@@ -589,7 +591,6 @@ public class ParserTest {
             "let y = 10;, y, 10",
             "let foobar = 838383;, foobar, 838383"
     })
-
     void testLetStatementsParameterized(String input, String expectedIdentifier, int expectedValue) throws IOException {
         Program program = parseInput(input);
 
@@ -606,10 +607,10 @@ public class ParserTest {
     }
 
     @Test
-    void TestStringIdentifier() throws IOException {
+    void testStringIdentifier() throws IOException {
         Program program = parseInput(
                 "\"Hello world\""
-);
+        );
 
         assertThat(program).isNotNull();
         assertThat(program.statements).hasSize(1);
@@ -621,5 +622,29 @@ public class ParserTest {
         var token = stringIdentifier.token();
         assertThat(token.type()).isEqualTo(TokenType.STRING);
         assertThat((token.literal())).isEqualTo("Hello world");
+    }
+
+    @Test
+    void testArrayLiterals() throws IOException {
+        Program program = parseInput(
+                "[1,2 * 2, 3 + 3]"
+        );
+
+        assertThat(program).isNotNull();
+        assertThat(program.statements).hasSize(1);
+
+        var stmt = program.statements.getFirst();
+        assertThat(stmt).isInstanceOf(ExpressionStatement.class);
+        var expressionStatement = (ExpressionStatement) stmt;
+        assertThat(expressionStatement.expression()).isInstanceOf(ArrayExpression.class);
+
+
+        var arrayExpression = (ArrayExpression) expressionStatement.expression();
+
+        assertThat(arrayExpression.elements().size()).isEqualTo(3);
+        assertThat(arrayExpression.elements().get(0).toString()).isEqualTo("1");
+        assertThat(arrayExpression.elements().get(1).toString()).isEqualTo("(2 * 2)");
+        assertThat(arrayExpression.elements().get(2).toString()).isEqualTo("(3 + 3)");
+
     }
 }

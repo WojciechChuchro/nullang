@@ -1,6 +1,7 @@
 package com.nullang.parser;
 
 import com.nullang.ast.*;
+import com.nullang.ast.expression.ArrayExpression;
 import com.nullang.ast.expression.BooleanIdentifier;
 import com.nullang.ast.expression.CallExpression;
 import com.nullang.ast.expression.Expression;
@@ -32,7 +33,8 @@ public class Parser implements AutoCloseable {
             Map.entry(TokenType.FALSE, this::parseBoolean),
             Map.entry(TokenType.LPAREN, this::parseGroupedExpression),
             Map.entry(TokenType.IF, this::parseIfExpression),
-            Map.entry(TokenType.FUNCTION, this::parseFnExpression)
+            Map.entry(TokenType.FUNCTION, this::parseFnExpression),
+            Map.entry(TokenType.LBRACKET, this::parseArray)
     );
 
     private final Map<TokenType, Function<Expression, Expression>> infixParseFns = Map.ofEntries(
@@ -129,12 +131,12 @@ public class Parser implements AutoCloseable {
     }
 
     private Expression parseCallExpression(Expression function) {
-        return new CallExpression(curToken, function, parseArguments());
+        return new CallExpression(curToken, function, parseArguments(TokenType.RPAREN));
     }
 
-    private List<Expression> parseArguments() {
+    private List<Expression> parseArguments(TokenType end) {
         List<Expression> arguments = new ArrayList<>();
-        if (peekToken.type() == TokenType.RPAREN) {
+        if (peekToken.type() == end) {
             nextToken();
             return arguments;
         }
@@ -166,6 +168,10 @@ public class Parser implements AutoCloseable {
         BlockStatement body = parseBlockStatement();
 
         return new FnExpression(cur, parameters, body);
+    }
+
+    private Expression parseArray() {
+        return new ArrayExpression(curToken, parseArguments(TokenType.RBRACE));
     }
 
     private List<Identifier> parseParameters() {
