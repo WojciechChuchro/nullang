@@ -218,6 +218,14 @@ public class NullangObjectTest {
                 Arguments.of("len of four",
                         parseInput("len(\"four\")"),
                         "4"
+                ),
+                Arguments.of("len of array",
+                        parseInput("len([1,2,3])"),
+                        "3"
+                ),
+                Arguments.of("len of empty array",
+                        parseInput("len([])"),
+                        "0"
                 )
         );
     }

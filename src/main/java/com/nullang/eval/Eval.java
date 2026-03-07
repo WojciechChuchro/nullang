@@ -33,6 +33,10 @@ public class Eval {
                         return switch (args.getFirst().type()) {
                             case STRING ->
                                     new IntegerObject(args.getFirst().inspect().length());
+                            case ARRAY -> {
+                                var arr = (ArrayObject) args.getFirst();
+                                yield new IntegerObject(arr.elements().size());
+                            }
                             default ->
                                     new ErrorObject("argument to `len` not supported, got " + args.get(0).type());
                         };
