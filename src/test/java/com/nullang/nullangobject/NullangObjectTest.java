@@ -447,4 +447,56 @@ public class NullangObjectTest {
         System.setOut(originalOut);
     }
     }
+
+
+    private static Stream<Arguments> arrayIndexExpressions() {
+        return Stream.of(
+                Arguments.of("index first element",
+                        parseInput("[1, 2, 3][0]"),
+                        new IntegerObject(1)),
+                Arguments.of("index second element",
+                        parseInput("[1, 2, 3][1]"),
+                        new IntegerObject(2)),
+                Arguments.of("index third element",
+                        parseInput("[1, 2, 3][2]"),
+                        new IntegerObject(3)),
+                Arguments.of("index with variable",
+                        parseInput("let i = 0; [1][i];"),
+                        new IntegerObject(1)),
+                Arguments.of("index with expression",
+                        parseInput("[1, 2, 3][1 + 1];"),
+                        new IntegerObject(3)),
+                Arguments.of("index into let-bound array",
+                        parseInput("let myArray = [1, 2, 3]; myArray[2];"),
+                        new IntegerObject(3)),
+                Arguments.of("sum of indexed elements",
+                        parseInput("let myArray = [1, 2, 3]; myArray[0] + myArray[1] + myArray[2];"),
+                        new IntegerObject(6)),
+                Arguments.of("index with nested array access",
+                        parseInput("let a = [1, 2, 3, 4, 5]; a[a[0]];"),
+                        new IntegerObject(2)),
+                Arguments.of("array of expressions",
+                        parseInput("[1 + 1, 2 * 2, 3 + 3][1];"),
+                        new IntegerObject(4)),
+                Arguments.of("index last element with len-like arithmetic",
+                        parseInput("let a = [10, 20, 30]; a[2 - 1];"),
+                        new IntegerObject(20)),
+                Arguments.of("function returning array element",
+                        parseInput("let get = fn(arr, i) { arr[i] }; get([5, 10, 15], 2);"),
+                        new IntegerObject(15))
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("arrayIndexExpressions")
+    public void testArrayIndexExpression(String name, Program program, IntegerObject expected) {
+        Eval e = new Eval();
+
+        var evaluated = e.evaluate(program, new Env());
+
+        assertThat(evaluated)
+                .isInstanceOf(IntegerObject.class)
+                .extracting(NullangObject::inspect)
+                .isEqualTo(expected.inspect());
+    }
 }

@@ -2,10 +2,12 @@ package com.nullang.eval;
 
 import com.nullang.ast.*;
 import com.nullang.ast.expression.BooleanIdentifier;
+import com.nullang.ast.expression.ArrayExpression;
 import com.nullang.ast.expression.CallExpression;
 import com.nullang.ast.expression.Expression;
 import com.nullang.ast.expression.FnExpression;
 import com.nullang.ast.expression.IfExpression;
+import com.nullang.ast.expression.IndexExpression;
 import com.nullang.ast.expression.InfixExpression;
 import com.nullang.ast.expression.PrefixExpression;
 import com.nullang.ast.statement.*;
@@ -54,6 +56,18 @@ public class Eval {
                     new IntegerObject(intNode.getValue());
             case StringIdentifier stringIdentifier ->
                     new StringObject(stringIdentifier.getValue());
+            case IndexExpression indexExpression -> {
+                var left = evaluate(indexExpression.getLeft(), evalEnv);
+                if (isError(left)) {
+                    yield left;
+                }
+                var index = evaluate(indexExpression.getIndex(), evalEnv);
+                if (isError(index)) {
+                    yield index;
+                }
+
+                yield evalIndexExpression(left, index);
+            }
             case BooleanIdentifier booleanNode ->
                     nativeBoolToBooleanObject(booleanNode.getValue());
             case IfExpression ifExpression ->
@@ -111,9 +125,35 @@ public class Eval {
                 }
                 yield applyFunction(function, args);
             }
+            case ArrayExpression arrayExpression -> {
+                var elements = evalExpressions(arrayExpression.elements(), evalEnv);
+                if (elements.size() == 1 && isError(elements.getFirst())) {
+                    yield elements.getFirst();
+                }
+                yield new ArrayObject(elements);
+            }
             default ->
                     NULL;
         };
+    }
+
+    private NullangObject evalIndexExpression(NullangObject left, NullangObject index) {
+        if(left.type()==ObjectType.ARRAY && index.type() == ObjectType.INTEGER) {
+            return evalArrayIndexExpression(left, index);
+        } else {
+            return new ErrorObject("index operator not supported: " + left.type() + " " + index.type());
+        }
+    }
+
+    private NullangObject evalArrayIndexExpression(NullangObject array, NullangObject index) {
+        var arr = (ArrayObject) array;
+        var idx = (IntegerObject) index;
+
+        if (idx.value() < 0 || idx.value() > arr.elements().size()) {
+            return NULL;
+        }
+
+        return arr.elements().get(idx.value());
     }
 
     private NullangObject applyFunction(NullangObject function, List<NullangObject> args) {

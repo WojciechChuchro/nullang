@@ -8,5 +8,6 @@ public enum ObjectType {
     RETURN_VALUE,
     ERROR,
     FUNCTION,
-    BUILTIN
+    BUILTIN,
+    ARRAY
 }
