@@ -140,6 +140,7 @@ public class Parser implements AutoCloseable {
         var indexExpression = new IndexExpression(curToken, left);
         nextToken();
         parseExpression(Precedences.LOWEST).ifPresent(indexExpression::setIndex);
+        consumeIfPeek(TokenType.RBRACKET);
         return indexExpression;
     }
 
@@ -158,7 +159,7 @@ public class Parser implements AutoCloseable {
             parseExpression(Precedences.LOWEST).ifPresent(arguments::add);
         }
 
-        consumeIfPeek(TokenType.RPAREN);
+        consumeIfPeek(end);
 
         return arguments;
     }
@@ -180,7 +181,7 @@ public class Parser implements AutoCloseable {
     }
 
     private Expression parseArray() {
-        return new ArrayExpression(curToken, parseArguments(TokenType.RBRACE));
+        return new ArrayExpression(curToken, parseArguments(TokenType.RBRACKET));
     }
 
     private List<Identifier> parseParameters() {

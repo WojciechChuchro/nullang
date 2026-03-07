@@ -24,7 +24,7 @@ public class IndexExpression implements Expression {
         builder.append(left.toString());
         builder.append("[");
         builder.append(index.toString());
-        builder.append(")]");
+        builder.append("])");
 
         return builder.toString();
     }

@@ -21,11 +21,14 @@ import com.nullang.parser.errors.ParserException;
 import com.nullang.token.TokenType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -660,5 +663,26 @@ public class ParserTest {
 
         assertThat(indexExpression.getLeft().toString()).isEqualTo("myArray");
         assertThat(indexExpression.getIndex().toString()).isEqualTo("(1 + 1)");
+    }
+
+    private static Stream<Arguments> arrayPrecedenceExpressions() {
+        return Stream.of(
+                Arguments.of(
+                        "a * [1, 2, 3, 4][b * c] * d",
+                        "((a * ([1, 2, 3, 4][(b * c)])) * d)"
+                ),
+                Arguments.of(
+                        "add(a * b[2], b[1], 2 * [1, 2][1])",
+                        "add((a * (b[2])), (b[1]), (2 * ([1, 2][1])))"
+                )
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("arrayPrecedenceExpressions")
+    void testArrayPrecedence(String input, String expected) throws IOException {
+        Program program = parseInput(input);
+
+        assertThat(program.toString()).isEqualTo(expected);
     }
 }

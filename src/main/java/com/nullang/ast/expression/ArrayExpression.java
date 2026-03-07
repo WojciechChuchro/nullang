@@ -18,7 +18,6 @@ public record ArrayExpression(
     public String toString() {
         StringBuilder builder = new StringBuilder();
 
-        builder.append(token.literal());
         builder.append("[");
         builder.append(elements.stream().map(Object::toString).collect(Collectors.joining(", ")));
         builder.append("]");
