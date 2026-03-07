@@ -1,39 +1,38 @@
 package com.nullang.parser;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
-
-import com.nullang.ast.expression.ArrayExpression;
-import com.nullang.ast.expression.BooleanIdentifier;
-import com.nullang.ast.expression.FnExpression;
-import com.nullang.ast.statement.StringIdentifier;
-import org.junit.jupiter.api.Test;
-
 import com.nullang.ast.Identifier;
 import com.nullang.ast.IntegerIdentifier;
 import com.nullang.ast.Program;
-import com.nullang.ast.statement.Statement;
+import com.nullang.ast.expression.ArrayExpression;
+import com.nullang.ast.expression.BooleanIdentifier;
 import com.nullang.ast.expression.CallExpression;
+import com.nullang.ast.expression.FnExpression;
 import com.nullang.ast.expression.IfExpression;
+import com.nullang.ast.expression.IndexExpression;
 import com.nullang.ast.expression.InfixExpression;
 import com.nullang.ast.expression.PrefixExpression;
 import com.nullang.ast.statement.BlockStatement;
 import com.nullang.ast.statement.ExpressionStatement;
 import com.nullang.ast.statement.LetStatement;
 import com.nullang.ast.statement.ReturnStatement;
+import com.nullang.ast.statement.Statement;
 import com.nullang.lexer.Lexer;
 import com.nullang.parser.errors.ParserException;
 import com.nullang.token.TokenType;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+
+import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ParserTest {
     private Program parseInput(String input) throws IOException {
@@ -53,7 +52,6 @@ public class ParserTest {
     }
 
     private void testBooleanLiteral(BooleanIdentifier booleanLiteral, boolean value) {
-        System.out.println(booleanLiteral.getTokenLiteral());
         assertThat(booleanLiteral.getValue()).isEqualTo(value);
         assertThat(booleanLiteral.getTokenLiteral()).isEqualTo(String.valueOf(value));
     }
@@ -70,7 +68,7 @@ public class ParserTest {
         assertEquals(1, program.statements.size());
 
         Statement stmt = program.statements.get(0);
-        assertTrue(stmt instanceof LetStatement, "Statement " + 0 + " should be LetStatement");
+        assertInstanceOf(LetStatement.class, stmt, "Statement " + 0 + " should be LetStatement");
         assertEquals("let", stmt.getTokenLiteral());
 
         LetStatement ls = (LetStatement) stmt;
@@ -81,7 +79,7 @@ public class ParserTest {
     }
 
     @Test
-    void testeLetStatements() throws IOException {
+    void testLetStatements() throws IOException {
         Program program =
                 parseInput(
                         """
@@ -122,7 +120,7 @@ public class ParserTest {
         assertThat(in.getValue()).isEqualTo(5);
         assertThat(in.toString()).isEqualTo("5");
 
-        assertTrue(program.statements.get(1) instanceof ReturnStatement);
+        assertInstanceOf(ReturnStatement.class, program.statements.get(1));
         ReturnStatement rs2 = (ReturnStatement) program.statements.get(1);
         ReturnStatement exp2 = (ReturnStatement) rs2;
         assertThat(exp2.getReturnValue()).isInstanceOf(BooleanIdentifier.class);
@@ -151,11 +149,11 @@ public class ParserTest {
         assertEquals(1, program.statements.size());
 
         Statement stmt = program.statements.get(0);
-        assertTrue(stmt instanceof ExpressionStatement);
+        assertInstanceOf(ExpressionStatement.class, stmt);
 
         ExpressionStatement exprStmt = (ExpressionStatement) stmt;
         assertEquals("foobar", exprStmt.getTokenLiteral());
-        assertTrue(exprStmt.expression() instanceof Identifier);
+        assertInstanceOf(Identifier.class, exprStmt.expression());
         assertEquals("foobar", ((Identifier) exprStmt.expression()).getValue());
     }
 
@@ -167,7 +165,7 @@ public class ParserTest {
         assertEquals(1, program.statements.size());
 
         Statement stmt = program.statements.get(0);
-        assertTrue(stmt instanceof ExpressionStatement);
+        assertInstanceOf(ExpressionStatement.class, stmt);
 
         ExpressionStatement exprStmt = (ExpressionStatement) stmt;
         assertTrue(exprStmt.expression() instanceof IntegerIdentifier);
@@ -187,15 +185,13 @@ public class ParserTest {
         assertNotNull(program);
         assertEquals(2, program.statements.size());
 
-        // Test identifier expression
         Statement stmt1 = program.statements.get(0);
-        assertTrue(stmt1 instanceof ExpressionStatement);
+        assertInstanceOf(ExpressionStatement.class, stmt1);
         ExpressionStatement exprStmt1 = (ExpressionStatement) stmt1;
         assertEquals("foobar", ((Identifier) exprStmt1.expression()).getValue());
 
-        // Test integer expression
         Statement stmt2 = program.statements.get(1);
-        assertTrue(stmt2 instanceof ExpressionStatement);
+        assertInstanceOf(ExpressionStatement.class, stmt2);
         ExpressionStatement exprStmt2 = (ExpressionStatement) stmt2;
         assertEquals(5, ((IntegerIdentifier) exprStmt2.expression()).getValue());
     }
@@ -208,17 +204,17 @@ public class ParserTest {
         assertEquals(1, program.statements.size());
 
         Statement stmt = program.statements.get(0);
-        assertTrue(stmt instanceof ExpressionStatement);
+        assertInstanceOf(ExpressionStatement.class, stmt);
 
         ExpressionStatement exprStmt = (ExpressionStatement) stmt;
-        assertTrue(exprStmt.expression() instanceof PrefixExpression);
+        assertInstanceOf(PrefixExpression.class, exprStmt.expression());
 
         PrefixExpression prefixExpr = (PrefixExpression) exprStmt.expression();
         assertEquals("!", prefixExpr.getOperator());
         assertEquals("!", prefixExpr.getTokenLiteral());
 
         assertNotNull(prefixExpr.getRight());
-        assertTrue(prefixExpr.getRight() instanceof IntegerIdentifier);
+        assertInstanceOf(IntegerIdentifier.class, prefixExpr.getRight());
 
         IntegerIdentifier right = (IntegerIdentifier) prefixExpr.getRight();
         assertEquals(5, right.getValue());
@@ -233,15 +229,15 @@ public class ParserTest {
         assertEquals(1, program.statements.size());
 
         Statement stmt = program.statements.get(0);
-        assertTrue(stmt instanceof ExpressionStatement);
+        assertInstanceOf(ExpressionStatement.class, stmt);
 
         ExpressionStatement exprStmt = (ExpressionStatement) stmt;
-        assertTrue(exprStmt.expression() instanceof PrefixExpression);
+        assertInstanceOf(PrefixExpression.class, exprStmt.expression());
 
         PrefixExpression prefixExpr = (PrefixExpression) exprStmt.expression();
         assertEquals("-", prefixExpr.getOperator());
 
-        assertTrue(prefixExpr.getRight() instanceof IntegerIdentifier);
+        assertInstanceOf(IntegerIdentifier.class, prefixExpr.getRight());
         assertEquals(5, ((IntegerIdentifier) prefixExpr.getRight()).getValue());
     }
 
@@ -257,12 +253,10 @@ public class ParserTest {
         assertNotNull(program);
         assertEquals(2, program.statements.size());
 
-        // Test bang prefix
         ExpressionStatement stmt1 = (ExpressionStatement) program.statements.get(0);
         PrefixExpression prefix1 = (PrefixExpression) stmt1.expression();
         assertEquals("!", prefix1.getOperator());
 
-        // Test minus prefix
         ExpressionStatement stmt2 = (ExpressionStatement) program.statements.get(1);
         PrefixExpression prefix2 = (PrefixExpression) stmt2.expression();
         assertEquals("-", prefix2.getOperator());
@@ -330,7 +324,7 @@ public class ParserTest {
 
         assertNotNull(program);
         assertEquals(1, program.statements.size());
-        // TODO: it method program.toString() should return input as examble below
+        // TODO: it method program.toString() should return input as example below
         // assertEquals("2 + (2 * 2)", program.toString());
     }
 
@@ -645,6 +639,26 @@ public class ParserTest {
         assertThat(arrayExpression.elements().get(0).toString()).isEqualTo("1");
         assertThat(arrayExpression.elements().get(1).toString()).isEqualTo("(2 * 2)");
         assertThat(arrayExpression.elements().get(2).toString()).isEqualTo("(3 + 3)");
+    }
 
+    @Test
+    void testIndexExpression() throws IOException {
+        Program program = parseInput(
+                "myArray[1+1]"
+        );
+
+        assertThat(program).isNotNull();
+        assertThat(program.statements).hasSize(1);
+
+        var stmt = program.statements.getFirst();
+        assertThat(stmt).isInstanceOf(ExpressionStatement.class);
+        var expressionStatement = (ExpressionStatement) stmt;
+        assertThat(expressionStatement.expression()).isInstanceOf(IndexExpression.class);
+
+
+        var indexExpression = (IndexExpression) expressionStatement.expression();
+
+        assertThat(indexExpression.getLeft().toString()).isEqualTo("myArray");
+        assertThat(indexExpression.getIndex().toString()).isEqualTo("(1 + 1)");
     }
 }

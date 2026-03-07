@@ -8,4 +8,5 @@ public class Precedences {
     public static final int PRODUCT = 5;      // *
     public static final int PREFIX = 6;       // -X or !X
     public static final int CALL = 7;         // myFunction(X)
+    public static final int INDEX = 8;         // myFunction(X)
 }

@@ -7,6 +7,7 @@ import com.nullang.ast.expression.CallExpression;
 import com.nullang.ast.expression.Expression;
 import com.nullang.ast.expression.FnExpression;
 import com.nullang.ast.expression.IfExpression;
+import com.nullang.ast.expression.IndexExpression;
 import com.nullang.ast.expression.InfixExpression;
 import com.nullang.ast.expression.PrefixExpression;
 import com.nullang.ast.statement.*;
@@ -46,7 +47,8 @@ public class Parser implements AutoCloseable {
             Map.entry(TokenType.NOT_EQ, this::parseInfixExpression),
             Map.entry(TokenType.LT, this::parseInfixExpression),
             Map.entry(TokenType.GT, this::parseInfixExpression),
-            Map.entry(TokenType.LPAREN, this::parseCallExpression)
+            Map.entry(TokenType.LPAREN, this::parseCallExpression),
+            Map.entry(TokenType.LBRACKET, this::parseIndexExpression)
     );
 
     public Parser(Lexer lexer) {
@@ -132,6 +134,13 @@ public class Parser implements AutoCloseable {
 
     private Expression parseCallExpression(Expression function) {
         return new CallExpression(curToken, function, parseArguments(TokenType.RPAREN));
+    }
+
+    private Expression parseIndexExpression(Expression left) {
+        var indexExpression = new IndexExpression(curToken, left);
+        nextToken();
+        parseExpression(Precedences.LOWEST).ifPresent(indexExpression::setIndex);
+        return indexExpression;
     }
 
     private List<Expression> parseArguments(TokenType end) {

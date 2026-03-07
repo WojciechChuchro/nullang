@@ -15,6 +15,7 @@ public class PrecedenceManager {
                     TokenType.MINUS, Precedences.SUM,
                     TokenType.SLASH, Precedences.PRODUCT,
                     TokenType.LPAREN, Precedences.CALL,
+                    TokenType.LBRACKET, Precedences.INDEX,
                     TokenType.ASTERISK, Precedences.PRODUCT
             );
 
