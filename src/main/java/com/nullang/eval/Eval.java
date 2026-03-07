@@ -77,6 +77,20 @@ public class Eval {
                         } else {
                             return new ErrorObject("argument to `first` not supported, got " + args.getLast().type());
                         }
+                    },
+                    "push", args -> {
+                        if (args.size() != 2) {
+                            return new ErrorObject("wrong number of arguments. got " + args.size() + " expected 1");
+                        }
+
+                        if (args.getFirst().type() != ObjectType.ARRAY) {
+                            return new ErrorObject("argument to `push` must be ARRAY, got " + args.getLast().type());
+                        }
+
+                        var arr = (ArrayObject) args.getFirst();
+                        arr.elements().add(args.getLast());
+
+                        return arr;
                     }
             );
 
