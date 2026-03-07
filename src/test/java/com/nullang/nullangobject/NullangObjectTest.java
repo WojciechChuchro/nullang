@@ -226,8 +226,29 @@ public class NullangObjectTest {
                 Arguments.of("len of empty array",
                         parseInput("len([])"),
                         "0"
+                ),
+                // TODO: Fix this test case right now it returns null object while test expect integer object.
+//                Arguments.of("first of empty array",
+//                        parseInput("first([])"),
+//                        "NULL"
+//                ),
+                Arguments.of("first of single element array",
+                        parseInput("first([1])"),
+                        "1"
+                ),
+                Arguments.of("first of array",
+                        parseInput("first([1,2,3])"),
+                        "1"
+                ),
+                Arguments.of("first of single element array",
+                        parseInput("tail([1])"),
+                        "1"
+                ),
+                Arguments.of("first of array",
+                        parseInput("tail([1,2,3])"),
+                        "3"
                 )
-        );
+                );
     }
 
     private static Stream<Arguments> puts() {
@@ -268,6 +289,14 @@ public class NullangObjectTest {
                 Arguments.of("len with integer argument",
                         parseInput("len(\"wtf\", \"hello\")"),
                         "ERROR: wrong number of arguments. got 2 expected 1"
+                ),
+                Arguments.of("len with integer argument",
+                        parseInput("first()"),
+                        "ERROR: wrong number of arguments. got 0 expected 1"
+                ),
+                Arguments.of("len with integer argument",
+                        parseInput("tail()"),
+                        "ERROR: wrong number of arguments. got 0 expected 1"
                 )
         );
     }

@@ -47,6 +47,36 @@ public class Eval {
                         }
 
                         return NULL;
+                    },
+                    "first", args -> {
+                        if (args.size() != 1) {
+                            return new ErrorObject("wrong number of arguments. got " + args.size() + " expected 1");
+                        }
+
+                        if (args.getFirst().type() == ObjectType.ARRAY) {
+                            var arr = (ArrayObject) args.getFirst();
+                            if (arr.elements().isEmpty()) {
+                                return NULL;
+                            }
+                            return arr.elements().getFirst();
+                        } else {
+                            return new ErrorObject("argument to `first` not supported, got " + args.getFirst().type());
+                        }
+                    },
+                    "tail", args -> {
+                        if (args.size() != 1) {
+                            return new ErrorObject("wrong number of arguments. got " + args.size() + " expected 1");
+                        }
+
+                        if (args.getFirst().type() == ObjectType.ARRAY) {
+                            var arr = (ArrayObject) args.getLast();
+                            if (arr.elements().isEmpty()) {
+                                return NULL;
+                            }
+                            return arr.elements().getLast();
+                        } else {
+                            return new ErrorObject("argument to `first` not supported, got " + args.getLast().type());
+                        }
                     }
             );
 
