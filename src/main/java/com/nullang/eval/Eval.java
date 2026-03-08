@@ -6,6 +6,7 @@ import com.nullang.ast.expression.ArrayExpression;
 import com.nullang.ast.expression.CallExpression;
 import com.nullang.ast.expression.Expression;
 import com.nullang.ast.expression.FnExpression;
+import com.nullang.ast.expression.HashExpression;
 import com.nullang.ast.expression.IfExpression;
 import com.nullang.ast.expression.IndexExpression;
 import com.nullang.ast.expression.InfixExpression;
@@ -14,6 +15,7 @@ import com.nullang.ast.statement.*;
 import com.nullang.nullangobject.*;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -104,6 +106,8 @@ public class Eval {
                     new IntegerObject(intNode.getValue());
             case StringIdentifier stringIdentifier ->
                     new StringObject(stringIdentifier.getValue());
+
+            case HashExpression hashExpression -> evalHashObject(hashExpression, evalEnv);
             case IndexExpression indexExpression -> {
                 var left = evaluate(indexExpression.getLeft(), evalEnv);
                 if (isError(left)) {
@@ -185,19 +189,62 @@ public class Eval {
         };
     }
 
+    private NullangObject evalHashObject(HashExpression hashExpression, Env env) {
+        Map<HashKey, HashPair> p = new LinkedHashMap<>();
+
+        for (var entry: hashExpression.pairs().entrySet()) {
+            var key = evaluate(entry.getKey(), env);
+            if (isError(key)) {
+                return key;
+            }
+
+            if (!(key instanceof Hashable)) {
+                return new ErrorObject("unhashable type: " + key.type());
+            }
+
+            var val = evaluate(entry.getValue(), env);
+            if (isError(val)) {
+                return val;
+            }
+
+            var hashKey = ((Hashable) key).hashKey();
+
+            p.put(hashKey, new HashPair(key, val));
+        }
+
+        return new HashObject(p);
+    }
+
     private NullangObject evalIndexExpression(NullangObject left, NullangObject index) {
-        if(left.type()==ObjectType.ARRAY && index.type() == ObjectType.INTEGER) {
+        if (left.type() == ObjectType.ARRAY && index.type() == ObjectType.INTEGER) {
             return evalArrayIndexExpression(left, index);
+        } else if (left.type() == ObjectType.HASH) {
+            return evalHashIndexExpression(left, index);
         } else {
             return new ErrorObject("index operator not supported: " + left.type() + " " + index.type());
         }
+    }
+
+    private NullangObject evalHashIndexExpression(NullangObject hash, NullangObject index) {
+        var hashObject = (HashObject) hash;
+
+        if (!(index instanceof Hashable hashable)) {
+            return new ErrorObject("unusable as hash key: " + index.type());
+        }
+
+        var pair = hashObject.pairs().get(hashable.hashKey());
+        if (pair == null) {
+            return NULL;
+        }
+
+        return pair.value();
     }
 
     private NullangObject evalArrayIndexExpression(NullangObject array, NullangObject index) {
         var arr = (ArrayObject) array;
         var idx = (IntegerObject) index;
 
-        if (idx.value() < 0 || idx.value() > arr.elements().size()) {
+        if (idx.value() < 0 || idx.value() >= arr.elements().size()) {
             return NULL;
         }
 

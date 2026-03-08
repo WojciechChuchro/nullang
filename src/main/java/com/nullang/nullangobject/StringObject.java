@@ -1,7 +1,7 @@
 
 package com.nullang.nullangobject;
 
-public record StringObject(String value) implements NullangObject{
+public record StringObject(String value) implements NullangObject, Hashable {
     @Override
     public ObjectType type() {
         return ObjectType.STRING;
@@ -10,5 +10,10 @@ public record StringObject(String value) implements NullangObject{
     @Override
     public String inspect() {
         return value;
+    }
+
+    @Override
+    public HashKey hashKey() {
+        return new HashKey(this.type(), value.hashCode());
     }
 }

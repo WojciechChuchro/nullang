@@ -491,6 +491,78 @@ public class NullangObjectTest {
     }
 
 
+    private static Stream<Arguments> hashLiteralExpressions() {
+        return Stream.of(
+                Arguments.of("empty hash",
+                        parseInput("{}"),
+                        new String[]{}),
+                Arguments.of("hash with string keys",
+                        parseInput("{\"one\": 1, \"two\": 2, \"three\": 3}"),
+                        new String[]{"one", "1", "two", "2", "three", "3"}),
+                Arguments.of("hash with integer keys",
+                        parseInput("{1: \"one\", 2: \"two\"}"),
+                        new String[]{"1", "one", "2", "two"}),
+                Arguments.of("hash with boolean keys",
+                        parseInput("{true: 1, false: 0}"),
+                        new String[]{"true", "1", "false", "0"}),
+                Arguments.of("hash with expression values",
+                        parseInput("{\"key\": 2 + 3}"),
+                        new String[]{"key", "5"})
+        );
+    }
+
+    private static Stream<Arguments> hashIndexExpressions() {
+        return Stream.of(
+                Arguments.of("index string key",
+                        parseInput("{\"foo\": 5}[\"foo\"]"),
+                        new IntegerObject(5)),
+                Arguments.of("index integer key",
+                        parseInput("{5: 10}[5]"),
+                        new IntegerObject(10)),
+                Arguments.of("index boolean key true",
+                        parseInput("{true: 1}[true]"),
+                        new IntegerObject(1)),
+                Arguments.of("index boolean key false",
+                        parseInput("{false: 99}[false]"),
+                        new IntegerObject(99)),
+                Arguments.of("index second of multiple string keys",
+                        parseInput("{\"one\": 1, \"two\": 2, \"three\": 3}[\"two\"]"),
+                        new IntegerObject(2)),
+                Arguments.of("index with let-bound hash",
+                        parseInput("let h = {\"a\": 10}; h[\"a\"];"),
+                        new IntegerObject(10)),
+                Arguments.of("index with expression key",
+                        parseInput("{\"key\": 5 * 2}[\"key\"]"),
+                        new IntegerObject(10))
+        );
+    }
+
+    private static Stream<Arguments> hashIndexMissExpressions() {
+        return Stream.of(
+                Arguments.of("missing key returns null",
+                        parseInput("{\"foo\": 5}[\"bar\"]")),
+                Arguments.of("empty hash returns null",
+                        parseInput("{}[\"anything\"]"))
+        );
+    }
+
+    private static Stream<Arguments> hashErrors() {
+        return Stream.of(
+                Arguments.of("unusable hash key type - function",
+                        parseInput("{fn(x){x}: 1}"),
+                        "ERROR: unhashable type: FUNCTION")
+        );
+    }
+
+    private static Stream<Arguments> hashKeyEquality() {
+        return Stream.of(
+                Arguments.of("same string produces same hash key",
+                        "hello", "hello", true),
+                Arguments.of("different strings produce different hash keys",
+                        "hello", "world", false)
+        );
+    }
+
     private static Stream<Arguments> arrayIndexExpressions() {
         return Stream.of(
                 Arguments.of("index first element",
@@ -540,5 +612,73 @@ public class NullangObjectTest {
                 .isInstanceOf(IntegerObject.class)
                 .extracting(NullangObject::inspect)
                 .isEqualTo(expected.inspect());
+    }
+
+    @ParameterizedTest
+    @MethodSource("hashLiteralExpressions")
+    public void testHashLiteral(String name, Program program, String[] expectedPairs) {
+        Eval e = new Eval();
+
+        var evaluated = e.evaluate(program, new Env());
+
+        assertThat(evaluated).isInstanceOf(HashObject.class);
+        var hashObject = (HashObject) evaluated;
+        assertThat(hashObject.pairs()).hasSize(expectedPairs.length / 2);
+
+        var pairValues = hashObject.pairs().values().iterator();
+        for (int i = 0; i < expectedPairs.length; i += 2) {
+            var pair = pairValues.next();
+            assertThat(pair.key().inspect()).isEqualTo(expectedPairs[i]);
+            assertThat(pair.value().inspect()).isEqualTo(expectedPairs[i + 1]);
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("hashIndexExpressions")
+    public void testHashIndexExpression(String name, Program program, IntegerObject expected) {
+        Eval e = new Eval();
+
+        var evaluated = e.evaluate(program, new Env());
+
+        assertThat(evaluated)
+                .isInstanceOf(IntegerObject.class)
+                .extracting(NullangObject::inspect)
+                .isEqualTo(expected.inspect());
+    }
+
+    @ParameterizedTest
+    @MethodSource("hashIndexMissExpressions")
+    public void testHashIndexMissReturnsNull(String name, Program program) {
+        Eval e = new Eval();
+
+        var evaluated = e.evaluate(program, new Env());
+
+        assertThat(evaluated).isInstanceOf(NullObject.class);
+    }
+
+    @ParameterizedTest
+    @MethodSource("hashErrors")
+    public void testHashErrors(String name, Program program, String expected) {
+        Eval e = new Eval();
+
+        var evaluated = e.evaluate(program, new Env());
+
+        assertThat(evaluated)
+                .isInstanceOf(ErrorObject.class)
+                .extracting(NullangObject::inspect)
+                .isEqualTo(expected);
+    }
+
+    @ParameterizedTest
+    @MethodSource("hashKeyEquality")
+    public void testHashKeyEquality(String name, String a, String b, boolean shouldEqual) {
+        var keyA = new StringObject(a).hashKey();
+        var keyB = new StringObject(b).hashKey();
+
+        if (shouldEqual) {
+            assertThat(keyA).isEqualTo(keyB);
+        } else {
+            assertThat(keyA).isNotEqualTo(keyB);
+        }
     }
 }

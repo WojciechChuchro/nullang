@@ -7,6 +7,7 @@ import com.nullang.ast.expression.ArrayExpression;
 import com.nullang.ast.expression.BooleanIdentifier;
 import com.nullang.ast.expression.CallExpression;
 import com.nullang.ast.expression.FnExpression;
+import com.nullang.ast.expression.HashExpression;
 import com.nullang.ast.expression.IfExpression;
 import com.nullang.ast.expression.IndexExpression;
 import com.nullang.ast.expression.InfixExpression;
@@ -713,5 +714,67 @@ public class ParserTest {
         Program program = parseInput(input);
 
         assertThat(program.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    void testHashLiteralWithStringKeys() throws IOException {
+        Program program = parseInput("{\"one\": 1, \"two\": 2, \"three\": 3}");
+
+        assertThat(program.statements).hasSize(1);
+        var stmt = (ExpressionStatement) program.statements.getFirst();
+        assertThat(stmt.expression()).isInstanceOf(HashExpression.class);
+
+        var hash = (HashExpression) stmt.expression();
+        assertThat(hash.pairs()).hasSize(3);
+    }
+
+    @Test
+    void testEmptyHashLiteral() throws IOException {
+        Program program = parseInput("{}");
+
+        assertThat(program.statements).hasSize(1);
+        var stmt = (ExpressionStatement) program.statements.getFirst();
+        assertThat(stmt.expression()).isInstanceOf(HashExpression.class);
+
+        var hash = (HashExpression) stmt.expression();
+        assertThat(hash.pairs()).isEmpty();
+    }
+
+    @Test
+    void testHashLiteralWithIntegerKeys() throws IOException {
+        Program program = parseInput("{1: \"one\", 2: \"two\"}");
+
+        assertThat(program.statements).hasSize(1);
+        var stmt = (ExpressionStatement) program.statements.getFirst();
+        assertThat(stmt.expression()).isInstanceOf(HashExpression.class);
+
+        var hash = (HashExpression) stmt.expression();
+        assertThat(hash.pairs()).hasSize(2);
+        assertThat(hash.toString()).isEqualTo("{1: one, 2: two}");
+    }
+
+    @Test
+    void testHashLiteralWithExpressionValues() throws IOException {
+        Program program = parseInput("{\"one\": 0 + 1, \"two\": 10 - 8, \"three\": 15 / 5}");
+
+        assertThat(program.statements).hasSize(1);
+        var stmt = (ExpressionStatement) program.statements.getFirst();
+        assertThat(stmt.expression()).isInstanceOf(HashExpression.class);
+
+        var hash = (HashExpression) stmt.expression();
+        assertThat(hash.pairs()).hasSize(3);
+        assertThat(hash.toString()).isEqualTo("{one: (0 + 1), two: (10 - 8), three: (15 / 5)}");
+    }
+
+    @Test
+    void testHashIndexExpression() throws IOException {
+        Program program = parseInput("{\"foo\": 5}[\"foo\"]");
+
+        assertThat(program.statements).hasSize(1);
+        var stmt = (ExpressionStatement) program.statements.getFirst();
+        assertThat(stmt.expression()).isInstanceOf(IndexExpression.class);
+
+        var indexExpr = (IndexExpression) stmt.expression();
+        assertThat(indexExpr.getLeft()).isInstanceOf(HashExpression.class);
     }
 }
