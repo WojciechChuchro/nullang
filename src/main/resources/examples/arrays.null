@@ -1,0 +1,37 @@
+let numbers = [10, 20, 30, 40, 50];
+
+puts("First element:");
+puts(numbers[0]);
+
+puts("Last element:");
+puts(numbers[4]);
+
+puts("Sum of first three:");
+puts(numbers[0] + numbers[1] + numbers[2]);
+
+let matrix_row_a = [1, 2, 3];
+let matrix_row_b = [4, 5, 6];
+
+let dotProduct = fn(a, b) {
+  a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
+};
+
+puts("Dot product of [1,2,3] and [4,5,6] =");
+puts(dotProduct(matrix_row_a, matrix_row_b));
+
+let getAt = fn(arr, index) { arr[index] };
+
+puts("Element at index 2:");
+puts(getAt(numbers, 2));
+
+let swappedFirst = fn(arr) {
+  [arr[1], arr[0], arr[2]]
+};
+
+let original = [100, 200, 300];
+let swapped = swappedFirst(original);
+
+puts("Original first:");
+puts(original[0]);
+puts("Swapped first:");
+puts(swapped[0]);

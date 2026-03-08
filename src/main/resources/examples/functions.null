@@ -1,0 +1,30 @@
+let add = fn(a, b) { a + b };
+let subtract = fn(a, b) { a - b };
+let multiply = fn(a, b) { a * b };
+
+puts("3 + 4 =");
+puts(add(3, 4));
+
+puts("10 - 3 =");
+puts(subtract(10, 3));
+
+puts("6 * 7 =");
+puts(multiply(6, 7));
+
+let square = fn(x) { multiply(x, x) };
+puts("5 squared =");
+puts(square(5));
+
+let abs = fn(x) {
+  if (x < 0) {
+    0 - x
+  } else {
+    x
+  }
+};
+
+puts("abs(-42) =");
+puts(abs(-42));
+
+puts("abs(7) =");
+puts(abs(7));

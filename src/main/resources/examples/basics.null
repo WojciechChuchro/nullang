@@ -1,0 +1,19 @@
+let name = "nullang";
+let version = 1;
+
+puts("Welcome to " + name + "!");
+
+let x = 10;
+let y = 20;
+let sum = x + y;
+
+puts("Sum of x and y:");
+puts(sum);
+
+let isPositive = sum > 0;
+
+if (isPositive) {
+  puts("The sum is positive");
+} else {
+  puts("The sum is not positive");
+};

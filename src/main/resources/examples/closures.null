@@ -1,0 +1,35 @@
+let makeAdder = fn(x) {
+  fn(y) { x + y }
+};
+
+let addFive = makeAdder(5);
+let addTen = makeAdder(10);
+
+puts("addFive(3) =");
+puts(addFive(3));
+
+puts("addTen(3) =");
+puts(addTen(3));
+
+let makeMultiplier = fn(factor) {
+  fn(x) { x * factor }
+};
+
+let double = makeMultiplier(2);
+let triple = makeMultiplier(3);
+
+puts("double(7) =");
+puts(double(7));
+
+puts("triple(7) =");
+puts(triple(7));
+
+let compose = fn(f, g) {
+  fn(x) { f(g(x)) }
+};
+
+let addOne = makeAdder(1);
+let doubleThenAddOne = compose(addOne, double);
+
+puts("double then add one to 5 =");
+puts(doubleThenAddOne(5));

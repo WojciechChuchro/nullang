@@ -1,0 +1,45 @@
+let apply = fn(f, x) { f(x) };
+let applyTwice = fn(f, x) { f(f(x)) };
+
+let increment = fn(x) { x + 1 };
+let double = fn(x) { x * 2 };
+
+puts("apply increment to 5 =");
+puts(apply(increment, 5));
+
+puts("apply double to 5 =");
+puts(apply(double, 5));
+
+puts("apply increment twice to 5 =");
+puts(applyTwice(increment, 5));
+
+puts("apply double twice to 3 =");
+puts(applyTwice(double, 3));
+
+let chooser = fn(condition) {
+  if (condition) {
+    fn(x) { x * 2 }
+  } else {
+    fn(x) { x + 10 }
+  }
+};
+
+let op = chooser(true);
+puts("chooser(true)(7) =");
+puts(op(7));
+
+let op_b = chooser(false);
+puts("chooser(false)(7) =");
+puts(op_b(7));
+
+let makeCounter = fn(start) {
+  fn(step) { start + step }
+};
+
+let fromTen = makeCounter(10);
+puts("fromTen(1) =");
+puts(fromTen(1));
+puts("fromTen(5) =");
+puts(fromTen(5));
+puts("fromTen(100) =");
+puts(fromTen(100));
