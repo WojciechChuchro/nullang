@@ -6,6 +6,7 @@ import com.nullang.ast.expression.BooleanIdentifier;
 import com.nullang.ast.expression.CallExpression;
 import com.nullang.ast.expression.Expression;
 import com.nullang.ast.expression.FnExpression;
+import com.nullang.ast.expression.HashExpression;
 import com.nullang.ast.expression.IfExpression;
 import com.nullang.ast.expression.IndexExpression;
 import com.nullang.ast.expression.InfixExpression;
@@ -35,7 +36,8 @@ public class Parser implements AutoCloseable {
             Map.entry(TokenType.LPAREN, this::parseGroupedExpression),
             Map.entry(TokenType.IF, this::parseIfExpression),
             Map.entry(TokenType.FUNCTION, this::parseFnExpression),
-            Map.entry(TokenType.LBRACKET, this::parseArray)
+            Map.entry(TokenType.LBRACKET, this::parseArray),
+            Map.entry(TokenType.LBRACE, this::parseHashMap)
     );
 
     private final Map<TokenType, Function<Expression, Expression>> infixParseFns = Map.ofEntries(
@@ -182,6 +184,36 @@ public class Parser implements AutoCloseable {
 
     private Expression parseArray() {
         return new ArrayExpression(curToken, parseArguments(TokenType.RBRACKET));
+    }
+
+    private Expression parseHashMap() {
+        Token hashToken = curToken;
+        // LinkedHashMap to maintain insertion order
+        var map = new LinkedHashMap<Expression, Expression>();
+
+        while (peekToken.type() != TokenType.RBRACE) {
+            nextToken();
+            Expression key = parseExpression(Precedences.LOWEST).get();
+            if (!consumeIfPeek(TokenType.COLON)) {
+                return null;
+            }
+            nextToken();
+            Expression value = parseExpression(Precedences.LOWEST).get();
+            map.put(key, value);
+
+            if (peekToken.type() != TokenType.COMMA && peekToken.type() != TokenType.RBRACE) {
+                return null;
+            }
+            if (peekToken.type() == TokenType.COMMA) {
+                nextToken();
+            }
+        }
+
+        if (!consumeIfPeek(TokenType.RBRACE)) {
+            return null;
+        }
+
+        return new HashExpression(hashToken, map);
     }
 
     private List<Identifier> parseParameters() {

@@ -678,9 +678,38 @@ public class ParserTest {
         );
     }
 
+    private static Stream<Arguments> hashMapExpressions() {
+        return Stream.of(
+                Arguments.of(
+                        "{\"one\": 1, \"two\": 2, \"three\": 3}",
+                        "{one: 1, two: 2, three: 3}"
+                ),
+                Arguments.of(
+                        "{}",
+                        "{}"
+                ),
+                Arguments.of(
+                        "{\"key\": 1 + 2}",
+                        "{key: (1 + 2)}"
+                ),
+                Arguments.of(
+                        "{true: 1, false: 0}",
+                        "{true: 1, false: 0}"
+                )
+        );
+    }
+
     @ParameterizedTest
     @MethodSource("arrayPrecedenceExpressions")
     void testArrayPrecedence(String input, String expected) throws IOException {
+        Program program = parseInput(input);
+
+        assertThat(program.toString()).isEqualTo(expected);
+    }
+
+    @ParameterizedTest
+    @MethodSource("hashMapExpressions")
+    void testHashMap(String input, String expected) throws IOException {
         Program program = parseInput(input);
 
         assertThat(program.toString()).isEqualTo(expected);
