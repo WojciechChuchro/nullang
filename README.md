@@ -128,8 +128,6 @@ Source Code → Lexer → Tokens → Parser → AST → Evaluator → Result
 ./gradlew run
 ```
 
-The REPL uses a Python-style prompt: `>>>` for input and `...` when more input is expected (e.g. unclosed braces). Type `exit` or `quit` to leave.
-
 ```
 Nullang 0.0.1
 Type "exit" or "quit" to leave.
@@ -208,6 +206,14 @@ src/
 │   └── examples/                   # Example .null programs
 └── test/java/com/nullang/          # Test suite
 ```
+
+## Personal projects
+
+This repo (**Nullang**) is my first personal project — a small interpreter to learn how languages work end-to-end.
+
+You can find more of my work and coding activity here:
+
+- **[LeetCode](https://leetcode.com/u/WojciechChuchro/)** — problems, solutions, and activity
 
 ## License
 
