@@ -167,6 +167,27 @@ See `src/main/resources/examples/` for sample programs: `basics.null`, `function
 ./gradlew test
 ```
 
+### Run with Docker
+
+Build the image and start the REPL:
+
+```bash
+docker build -t nullang .
+docker run -it nullang
+```
+
+Then try the language (type `exit` or `quit` to leave). To run a bundled example file:
+
+```bash
+docker run --rm nullang run examples/demo.null
+```
+
+To run your own `.null` file, mount it into the container:
+
+```bash
+docker run --rm -v "$(pwd)/myfile.null:/script.null" nullang run /script.null
+```
+
 ## Project Structure
 
 ```
