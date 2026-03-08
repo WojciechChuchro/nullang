@@ -2,17 +2,18 @@
 
 A tree-walking interpreter for a dynamically-typed programming language, built in Java 21.
 
-Nullang supports integers, booleans, strings, arrays, first-class functions, closures, and higher-order functions. It is inspired by the Monkey language from [Writing An Interpreter In Go](https://interpreterbook.com/) by Thorsten Ball, reimplemented from scratch in Java.
+Nullang supports integers, booleans, strings, arrays, hash maps, first-class functions, closures, and higher-order functions. It is inspired by the Monkey language from [Writing An Interpreter In Go](https://interpreterbook.com/) by Thorsten Ball, reimplemented from scratch in Java.
 
 ## Language Features
 
-**Data types** — integers, booleans, strings, arrays
+**Data types** — integers, booleans, strings, arrays, hash maps
 
 ```
 let age = 25;
 let name = "nullang";
 let active = true;
 let items = [1, 2, 3];
+let person = {"name": "alice", "age": 30};
 ```
 
 **Arithmetic and comparison operators**
@@ -20,7 +21,8 @@ let items = [1, 2, 3];
 ```
 let result = (2 + 3) * 4;    // 20
 let check = 10 > 5;          // true
-let eq = "hi" == "hi";       // true
+let eq = 1 == 1;             // true
+"hello" + " " + "world";      // string concatenation
 ```
 
 **Variables**
@@ -67,11 +69,34 @@ arr[0];              // 1
 arr[1 + 1];          // 3
 ```
 
+**Hash maps**
+
+Keys can be strings, integers, or booleans. Values can be any expression. Indexing with a missing key returns null.
+
+```
+let map = {"one": 1, "two": 2, "three": 3};
+map["two"];          // 2
+
+let byNum = {1: "one", 2: "two"};
+byNum[2];            // "two"
+
+let byBool = {true: "yes", false: "no"};
+byBool[true];        // "yes"
+
+let h = {"key": 2 + 3};
+h["key"];            // 5
+{}["missing"];       // null
+```
+
 **Built-in functions**
 
 ```
 len("hello");        // 5
+len([1, 2, 3]);      // 3
 puts("hello world"); // prints to stdout
+first([1, 2, 3]);    // 1
+tail([1, 2, 3]);     // 3
+push([1, 2], 3);     // [1, 2, 3] (mutates array)
 ```
 
 ## Architecture
@@ -140,11 +165,12 @@ src/
 │   ├── NullangApplication.java     # Interactive REPL
 │   ├── Repl.java                   # File-based runner
 │   ├── ast/                        # AST nodes
-│   │   ├── expression/             # Infix, prefix, call, if, fn, array, index
+│   │   ├── expression/             # Infix, prefix, call, if, fn, array, hash, index
 │   │   └── statement/              # Let, return, block, expression statements
 │   ├── eval/                       # Evaluator and environment
 │   ├── lexer/                      # Tokenizer
-│   ├── nullangobject/              # Runtime objects (int, bool, string, array, fn, error)
+│   ├── nullangobject/              # Runtime objects (int, bool, string, array, hash, fn, error)
+│   │   └── HashKey, HashPair, Hashable # Hash key identity and pairs
 │   ├── parser/                     # Pratt parser with precedence climbing
 │   └── token/                      # Token types
 ├── main/resources/
