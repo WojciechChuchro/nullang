@@ -11,7 +11,6 @@ tasks.named<JavaExec>("run") {
     standardInput = System.`in`
 }
 
-// Run a .null file from resources: ./gradlew runFile -Pfile=examples/basics.null
 tasks.register<JavaExec>("runFile") {
     group = "application"
     description = "Run a Nullang file from resources (use -Pfile=path/to/file.null)"
