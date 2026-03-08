@@ -247,7 +247,7 @@ public class NullangObjectTest {
                 Arguments.of("first of array",
                         parseInput("tail([1,2,3])"),
                         "3"
-                ),
+                )
                 //TODO: test array in different test case
 //                Arguments.of("push element to array",
 //                        parseInput("push([1,2,3], 4)"),

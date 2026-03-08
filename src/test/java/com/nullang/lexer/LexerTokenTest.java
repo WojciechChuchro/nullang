@@ -42,7 +42,29 @@ public class LexerTokenTest {
                                 new Token(TokenType.STRING, "Hello world"),
                                 new Token(TokenType.STRING, "foobar")
                         )),
+                Arguments.of("should parse colon",
+                        ":",
+                        List.of(
+                                new Token(TokenType.COLON, ":")
+                        )),
+                Arguments.of("should hash map",
+                        "{\"key\": \"value\", true: false};",
+                        List.of(
+                                new Token(TokenType.LBRACE, "{"),
+                                new Token(TokenType.STRING, "key"),
+                                new Token(TokenType.COLON, ":"),
+                                new Token(TokenType.STRING, "value"),
 
+                                new Token(TokenType.COMMA, ","),
+
+                                new Token(TokenType.TRUE, "true"),
+                                new Token(TokenType.COLON, ":"),
+                                new Token(TokenType.FALSE, "false"),
+
+                                new Token(TokenType.RBRACE, "}"),
+                                new Token(TokenType.SEMICOLON, ";"),
+                                new Token(TokenType.EOF, "")
+                        )),
                 Arguments.of("should parse array",
                         "[1, 2];",
                         List.of(

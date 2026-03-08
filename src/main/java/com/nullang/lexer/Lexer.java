@@ -73,6 +73,9 @@ public class Lexer implements AutoCloseable {
             case ',':
                 token = new Token(TokenType.COMMA, ",");
                 break;
+            case ':':
+                token = new Token(TokenType.COLON, ":");
+                break;
             case '\"':
                 var literal = readString();
                 token = new Token(TokenType.STRING, literal);

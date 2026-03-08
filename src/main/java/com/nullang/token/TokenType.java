@@ -47,4 +47,5 @@ public enum TokenType {
 
     LBRACKET,
     RBRACKET,
+    COLON
 }
