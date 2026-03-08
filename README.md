@@ -128,28 +128,38 @@ Source Code → Lexer → Tokens → Parser → AST → Evaluator → Result
 ./gradlew run
 ```
 
-Then type expressions interactively:
+The REPL uses a Python-style prompt: `>>>` for input and `...` when more input is expected (e.g. unclosed braces). Type `exit` or `quit` to leave.
 
 ```
-Enter code to parse:
->> let x = 5;
-Evaluated: 5
->> let double = fn(x) { x * 2 };
-Evaluated: fn([x]{(x * 2)}
->> double(x);
-Evaluated: 10
->> exit
+Nullang 0.0.1
+Type "exit" or "quit" to leave.
+
+>>> let x = 5;
+>>> let double = fn(x) { x * 2 };
+>>> double(x);
+10
+>>> fn(a, b) { a + b }(2, 3);
+5
+>>> exit
 ```
 
 ### Run a file
 
-Place your code in a `.null` file and run it with the `Repl` class:
+Run a `.null` file from the project resources:
 
 ```bash
-./gradlew run -PmainClass=com.nullang.Repl
+./gradlew runFile -Pfile=examples/basics.null
+./gradlew runFile -Pfile=examples/demo.null
+./gradlew runFile -Pfile=examples/hashes.null
 ```
 
-See `src/main/resources/examples/` for sample programs.
+Or run the `RunFile` main class with a path (file path or resource path):
+
+```bash
+./gradlew run -PmainClass=com.nullang.RunFile -Pfile=examples/functions.null
+```
+
+See `src/main/resources/examples/` for sample programs: `basics.null`, `functions.null`, `arrays.null`, `closures.null`, `higher_order.null`, `hashes.null`, `demo.null`.
 
 ### Run tests
 
@@ -162,8 +172,8 @@ See `src/main/resources/examples/` for sample programs.
 ```
 src/
 ├── main/java/com/nullang/
-│   ├── NullangApplication.java     # Interactive REPL
-│   ├── Repl.java                   # File-based runner
+│   ├── Repl.java                   # Interactive REPL
+│   ├── RunFile.java                # Run a .null file from path or resources
 │   ├── ast/                        # AST nodes
 │   │   ├── expression/             # Infix, prefix, call, if, fn, array, hash, index
 │   │   └── statement/              # Let, return, block, expression statements

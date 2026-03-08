@@ -1,8 +1,6 @@
 package com.nullang.lexer;
 
-import com.nullang.token.Token;
 import com.nullang.token.TokenType;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -11,6 +9,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.io.IOException;
 import java.io.Reader;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
@@ -21,15 +20,16 @@ class LexerExceptionTest {
     Reader reader;
 
     @Test
-    void constructorHandlesIOException() throws IOException {
-
+    void constructorThrowsOnIOException() throws IOException {
         when(reader.read()).thenThrow(new IOException("boom"));
 
-        Assertions.assertDoesNotThrow(() -> new Lexer(reader));
+        assertThatThrownBy(() -> new Lexer(reader))
+                .isInstanceOf(RuntimeException.class)
+                .hasCauseInstanceOf(IOException.class);
     }
 
     @Test
-    void closeHandlesIOException() throws Exception {
+    void closeThrowsOnIOException() throws Exception {
         when(reader.read()).thenReturn(-1);
 
         doThrow(new IOException("boom on close"))
@@ -37,55 +37,56 @@ class LexerExceptionTest {
 
         Lexer lexer = new Lexer(reader);
 
-        Assertions.assertDoesNotThrow(lexer::close);
+        assertThatThrownBy(lexer::close)
+                .isInstanceOf(RuntimeException.class)
+                .hasCauseInstanceOf(IOException.class);
     }
 
-
     @Test
-    void readCharHandlesIOException() throws Exception {
+    void nextTokenThrowsOnReadIOException() throws Exception {
         when(reader.read())
                 .thenReturn((int) 'a')
-                .thenReturn((int) 'b')
-                .thenReturn((int) ' ') // TODO: without that causes infinite loop inside readIdentifier
+                .thenReturn((int) ' ')
                 .thenThrow(new IOException("read failure"));
 
         Lexer lexer = new Lexer(reader);
 
-        Assertions.assertDoesNotThrow(() -> {
-            lexer.nextToken();
-        });
+        assertThatThrownBy(lexer::nextToken)
+                .isInstanceOf(RuntimeException.class)
+                .hasCauseInstanceOf(IOException.class);
     }
 
-
     @Test
-    void readIdentifierHandlesIOException() throws Exception {
+    void nextTokenThrowsOnIOExceptionInIdentifier() throws Exception {
         when(reader.read())
                 .thenReturn((int) 'a')
                 .thenReturn((int) 'a')
-                .thenReturn((int) ' ') // TODO: without that causes infinite loop inside readIdentifier
+                .thenReturn((int) ' ')
                 .thenThrow(new IOException("boom"));
 
         Lexer lexer = new Lexer(reader);
 
-        Assertions.assertDoesNotThrow(lexer::nextToken);
+        assertThatThrownBy(lexer::nextToken)
+                .isInstanceOf(RuntimeException.class)
+                .hasCauseInstanceOf(IOException.class);
     }
 
-
     @Test
-    void readNumberHandlesIOException() throws Exception {
+    void nextTokenThrowsOnIOExceptionInNumber() throws Exception {
         when(reader.read())
                 .thenReturn((int) '1')
-                .thenReturn((int) '1')
-                .thenReturn((int) ' ') // TODO: without that causes infinite loop inside readIdentifier
+                .thenReturn((int) ' ')
                 .thenThrow(new IOException("boom"));
 
         Lexer lexer = new Lexer(reader);
-        Assertions.assertDoesNotThrow(lexer::nextToken);
+
+        assertThatThrownBy(lexer::nextToken)
+                .isInstanceOf(RuntimeException.class)
+                .hasCauseInstanceOf(IOException.class);
     }
 
-
     @Test
-    void equalsTokenHandlesIOException() throws Exception {
+    void nextTokenThrowsOnIOExceptionAfterToken() throws Exception {
         when(reader.read())
                 .thenReturn((int) '=')
                 .thenReturn((int) '=')
@@ -93,19 +94,17 @@ class LexerExceptionTest {
 
         Lexer lexer = new Lexer(reader);
 
-        Token token = lexer.nextToken();
-        Assertions.assertEquals(TokenType.EQ, token.type());
+        assertThatThrownBy(lexer::nextToken)
+                .isInstanceOf(RuntimeException.class)
+                .hasCauseInstanceOf(IOException.class);
     }
 
-
     @Test
-    void nextTokenSurvivesRepeatedExceptions() throws Exception {
+    void nextTokenThrowsOnRepeatedIOException() throws Exception {
         when(reader.read()).thenThrow(new IOException("continuous failure"));
 
-        Lexer lexer = new Lexer(reader);
-
-        for (int i = 0; i < 5; i++) {
-            Assertions.assertDoesNotThrow(lexer::nextToken);
-        }
+        assertThatThrownBy(() -> new Lexer(reader))
+                .isInstanceOf(RuntimeException.class)
+                .hasCauseInstanceOf(IOException.class);
     }
 }

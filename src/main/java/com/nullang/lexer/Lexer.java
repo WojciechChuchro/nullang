@@ -2,16 +2,12 @@ package com.nullang.lexer;
 
 import com.nullang.token.Token;
 import com.nullang.token.TokenType;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-
 
 import java.io.IOException;
 import java.io.Reader;
 import java.util.Map;
 
 public class Lexer implements AutoCloseable {
-    private final Logger log = LoggerFactory.getLogger(Lexer.class);
     private final Reader reader;
     private int currentChar;
     private int peekedChar;
@@ -32,7 +28,7 @@ public class Lexer implements AutoCloseable {
             this.currentChar = reader.read();
             this.peekedChar = reader.read();
         } catch (IOException e) {
-            log.error("Exception while creating Lexer object {}", e.getMessage(), e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -133,7 +129,7 @@ public class Lexer implements AutoCloseable {
             currentChar = peekedChar;
             peekedChar = reader.read();
         } catch (IOException e) {
-            log.error("Exception while reading character {}", e.getMessage(), e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -192,7 +188,7 @@ public class Lexer implements AutoCloseable {
         try {
             reader.close();
         } catch (IOException e) {
-            log.error("Exception while closing reader {}", e.getMessage(), e);
+            throw new RuntimeException(e);
         }
     }
 }

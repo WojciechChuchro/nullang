@@ -1,0 +1,35 @@
+puts("Nullang demo");
+puts("");
+
+let x = 10;
+let y = 20;
+puts("Variables: x = 10, y = 20");
+puts("Sum:");
+puts(x + y);
+puts("");
+
+let arr = [1, 2, 3, 4, 5];
+puts("Array length:");
+puts(len(arr));
+puts("First element:");
+puts(first(arr));
+puts("Last element:");
+puts(tail(arr));
+puts("");
+
+let map = {"lang": "nullang", "version": 1};
+let key = "lang";
+puts("Hash lookup map[key]:");
+puts(map[key]);
+puts("");
+
+let add = fn(a, b) { a + b };
+puts("Function add(3, 7):");
+puts(add(3, 7));
+
+let makeGreet = fn(name) { fn() { "Hello, " + name } };
+let greet = makeGreet("world");
+puts("Closure greet():");
+puts(greet());
+puts("");
+puts("Done.");

@@ -4,11 +4,22 @@ plugins {
 }
 
 application {
-    mainClass = "com.nullang.NullangApplication"
+    mainClass = "com.nullang.Repl"
 }
 
 tasks.named<JavaExec>("run") {
     standardInput = System.`in`
+}
+
+// Run a .null file from resources: ./gradlew runFile -Pfile=examples/basics.null
+tasks.register<JavaExec>("runFile") {
+    group = "application"
+    description = "Run a Nullang file from resources (use -Pfile=path/to/file.null)"
+    mainClass = "com.nullang.RunFile"
+    classpath = sourceSets["main"].runtimeClasspath
+    if (project.hasProperty("file")) {
+        systemProperty("file", project.property("file"))
+    }
 }
 group = "com.nullang"
 version = "0.0.1-SNAPSHOT"
@@ -24,7 +35,6 @@ repositories {
 }
 
 dependencies {
-    implementation("org.slf4j:slf4j-api:2.0.17")
     testImplementation("org.assertj:assertj-core:4.0.0-M1")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.10.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

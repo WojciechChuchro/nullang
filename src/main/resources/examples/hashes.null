@@ -1,0 +1,31 @@
+puts("=== Hash maps ===");
+
+let person = {"name": "alice", "age": 30, "active": true};
+puts("Person:");
+puts(person["name"]);
+puts(person["age"]);
+puts(person["active"]);
+
+let byNumber = {1: "one", 2: "two", 3: "three"};
+puts("By number:");
+puts(byNumber[1]);
+puts(byNumber[2]);
+
+let byBool = {true: "yes", false: "no"};
+puts("By boolean:");
+puts(byBool[true]);
+puts(byBool[false]);
+
+let computed = {"key": 2 + 3, "double": 10 * 2};
+puts("Computed values:");
+puts(computed["key"]);
+puts(computed["double"]);
+
+let empty = {};
+puts("Empty hash key:");
+puts(empty["missing"]);
+
+let nested = {"a": 1, "b": 2};
+let getVal = fn(h, k) { h[k] };
+puts("Lookup via function:");
+puts(getVal(nested, "b"));
