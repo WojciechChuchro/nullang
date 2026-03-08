@@ -122,6 +122,12 @@ Source Code → Lexer → Tokens → Parser → AST → Evaluator → Result
 - Java 21+
 - Gradle
 
+### Run tests
+
+```bash
+./gradlew test
+```
+
 ### Run the REPL
 
 ```bash
@@ -151,19 +157,14 @@ Run a `.null` file from the project resources:
 ./gradlew runFile -Pfile=examples/hashes.null
 ```
 
-Or run the `RunFile` main class with a path (file path or resource path):
-
-```bash
-./gradlew run -PmainClass=com.nullang.RunFile -Pfile=examples/functions.null
-```
-
-See `src/main/resources/examples/` for sample programs: `basics.null`, `functions.null`, `arrays.null`, `closures.null`, `higher_order.null`, `hashes.null`, `demo.null`.
-
-### Run tests
-
-```bash
-./gradlew test
-```
+See `src/main/resources/examples/` for sample programs: 
+- `basics.null`
+- `functions.null`
+- `arrays.null`
+- `closures.null`
+- `higher_order.null`
+- `hashes.null`
+- `demo.null`
 
 ### Run with Docker
 
@@ -178,12 +179,6 @@ Then try the language (type `exit` or `quit` to leave). To run a bundled example
 
 ```bash
 docker run --rm nullang run examples/demo.null
-```
-
-To run your own `.null` file, mount it into the container:
-
-```bash
-docker run --rm -v "$(pwd)/myfile.null:/script.null" nullang run /script.null
 ```
 
 ## Project Structure
@@ -206,14 +201,6 @@ src/
 │   └── examples/                   # Example .null programs
 └── test/java/com/nullang/          # Test suite
 ```
-
-## Personal projects
-
-This repo (**Nullang**) is my first personal project — a small interpreter to learn how languages work end-to-end.
-
-You can find more of my work and coding activity here:
-
-- **[LeetCode](https://leetcode.com/u/WojciechChuchro/)** — problems, solutions, and activity
 
 ## License
 
