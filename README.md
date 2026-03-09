@@ -158,13 +158,14 @@ Run a `.null` file from the project resources:
 ```
 
 See `src/main/resources/examples/` for sample programs: 
-- `basics.null`
-- `functions.null`
 - `arrays.null`
+- `basics.null`
 - `closures.null`
-- `higher_order.null`
-- `hashes.null`
 - `demo.null`
+- `fizzbuzz.null`
+- `functions.null`
+- `hashes.null`
+- `higher_order.null`
 
 ### Run with Docker
 
