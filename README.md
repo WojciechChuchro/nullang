@@ -22,7 +22,7 @@ let person = {"name": "alice", "age": 30};
 let result = (2 + 3) * 4;    // 20
 let check = 10 > 5;          // true
 let eq = 1 == 1;             // true
-"hello" + " " + "world";      // string concatenation
+"hello" + " " + "world";     // string concatenation
 ```
 
 **Variables**
